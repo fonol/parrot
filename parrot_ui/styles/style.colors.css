@@ -1,0 +1,31 @@
+:root {
+    color-scheme: dark;
+
+    --c-scrollbar-fg: rgb(64, 55, 45);
+    --c-scrollbar-bg: rgb(42, 38, 33);
+    --text-secondary-color: #b99477;
+    --text-primary-color: hsl(34, 50%, 80%);
+    --text-danger-color: #d14361;
+    --active-secondary-color: #38976b;
+    --active-primary-color: #6cedb1;
+    --link-primary-color: #099ed4;
+    --link-secondary-color: #136381;
+    --editor-bg: #26211c;
+    --pane-bg: rgb(44 39 33);
+    --pane-border-color: rgb(71 60 46);
+    --modal-background: rgb(42, 38, 33);
+
+}
+
+.text-danger {
+    color: var(--text-danger-color);
+}
+.text-secondary {
+    color: var(--text-secondary-color);
+}
+.text-primary {
+    color: var(--text-primary-color);
+}
+.text-active {
+    color: var(--active-primary-color);
+}

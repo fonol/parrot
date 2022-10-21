@@ -1,0 +1,25 @@
+[package]
+name = "parrot_rs"
+version = "0.1.0"
+license = "ISC"
+edition = "2021"
+
+[lib]
+
+[dependencies]
+lazy_static = "*"
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "*"
+indextree = "4.4.0"
+serde_indextree = "*"
+rand = "*"
+sanitize-filename = "0.3.0"
+regex = "*"
+itertools = "*"
+walkdir = "*"
+directories = "4.0.1"
+open = "1"
+crossbeam = "0.5"
+os_pipe = "1.0.1"
+utf8-chars = "1.0"
+sexp = "1.1.4"

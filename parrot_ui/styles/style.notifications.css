@@ -1,0 +1,21 @@
+.notification-wrapper {
+    position: absolute;
+    top: 50px;
+    left: calc(50% - 150px);
+    z-index: 100;
+}
+.notification {
+    padding: 20px;
+    background: rgb(43 90 63);
+    color: var(--c-note-fg);
+    border: 1px solid #6cedb1;
+    width: 300px;
+    animation: fadeIn 0.4s ease-in-out;
+    margin: 10px;
+    border-radius: 4px;
+}
+.notification--error {
+    color: #ff8686;
+    background: #562727;
+    border: 1px solid var(--c-node-red-lighter);
+}

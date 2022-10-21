@@ -1,0 +1,19 @@
+{
+  "name": "parrot",
+  "version": "1.0.0",
+  "description": "",
+  "scripts": {
+    "icon": "tauri icon",
+    "tauri": "tauri",
+    "dev": "tauri dev",
+    "build:release": "tauri build",
+    "build:debug": "tauri build --debug"
+  },
+  "keywords": [],
+  "author": "GitHub",
+  "license": "CC0-1.0",
+  "devDependencies": {
+    "@tauri-apps/cli": "^1.1.0"
+  }
+ 
+}

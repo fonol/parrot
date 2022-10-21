@@ -1,0 +1,83 @@
+<html>
+    <head>
+        <style>.failure { color: red; } .success { color: green; }</style>
+
+    </head>
+    <body>
+        <h3>Tests</h3>
+        <div id="tests">
+
+        </div>
+        <script type="module">
+            import { getSurroundingTopLevelExpr, getPrecedingExpr } from './scripts/utils.js'
+            let el = document.getElementById('tests')
+
+            // testing getSurroundingTopLevelExpr()
+            let testsGetSurroundingTopLevelExpr = [
+                    ['', '', null],
+                    [' ', ' ', null],
+                    ['(test)', '', null],
+                    ['(', ')', '()'],
+                    ['(', 'test)', '(test)'],
+                    ['(', '\ntest)', '(test)'],
+                    ['(\n', 'test)', '(test)'],
+                    ['()', '(test)', null],
+                    ['))', 'test)', null],
+                    [')', ')', null],
+                    ['(defun test', ')', '(defun test)'],
+                    ['(defun not)(defun not (defun not ()))(defun test', ')', '(defun test)'],
+                    ['(defun not ()) (defun test', ')', '(defun test)'],
+                    ['(defun not (',')) (defun test)', '(defun not ())'],
+                    ['(defun test ()\n',' (nil))', '(defun test () (nil))'],
+                    ['(defun dump-db () (format',' t "~{~{~a:~10t~a~%~}~%~}" *db*))', '(defun dump-db () (format t "~{~{~a:~10t~a~%~}~%~}" *db*))'],
+                    ['(defun prompt-read (prompt) (format *query-io* ','"~a: " prompt) (force-output *query-io*) (read-line *query-io*))', '(defun prompt-read (prompt) (format *query-io* "~a: " prompt) (force-output *query-io*) (read-line *query-io*))'],
+                    ['(defun prompt-read (prompt) (format *query-io* "~a: " prompt)',' (force-output *query-io*) (read-line *query-io*))', '(defun prompt-read (prompt) (format *query-io* "~a: " prompt) (force-output *query-io*) (read-line *query-io*))'],
+                    ['(','defun prompt-read (prompt) (format *query-io* "~a: " prompt) (force-output *query-io*) (read-line *query-io*))', '(defun prompt-read (prompt) (format *query-io* "~a: " prompt) (force-output *query-io*) (read-line *query-io*))'],
+                    ['(defun prompt-read (prompt) (format *query-io* "~a: " prompt) (force-output *query-io*) (read-line *query-io*)',')', '(defun prompt-read (prompt) (format *query-io* "~a: " prompt) (force-output *query-io*) (read-line *query-io*))'],
+                ];
+            for (let [before, after, res] of testsGetSurroundingTopLevelExpr) {
+                let actual = getSurroundingTopLevelExpr(before, after);
+                if (actual) {
+                    actual = actual.text;
+                }
+                el.innerHTML += `
+                    <div>
+                        getSurroundingTopLevelExpr('${before}', '${after}') = ${actual} -> ${actual === res ? '<span class="success">Success</span>': '<span class="failure">Failure</span>'}
+                    </div>
+                `;
+            }
+            // testing getPrecedingExpr()
+            let testsGetPrecedingExpr = [
+                    ['', null],
+                    [' ', null],
+                    ['\n', null],
+                    [' \n', null],
+                    [' (+ 2 2)', '(+ 2 2)'],
+                    ['2', '2'],
+                    [' 2', '2'],
+                    [' 2 ', '2'],
+                    [' 2  ', '2'],
+                    [' 22  ', '22'],
+                    ['\t2  ', '2'],
+                    ['\r\n2  ', '2'],
+                    [') \r\n2  ', '2'],
+                    ['(+ 3 3) 2', '2'],
+                    ['(+ 3 3) (2)', '(2)'],
+                    ['(defun test (format t "test"))', '(defun test (format t "test"))'],
+                    ['(defun test ())', '(defun test ())'],
+                    ['"a"\n"b"', '"b"'],
+                    ['"a"\n"b" ', '"b"'],
+                ];
+            for (let [arg1, expected] of testsGetPrecedingExpr) {
+                let actual = getPrecedingExpr(arg1);
+                el.innerHTML += `
+                    <div>
+                        getPrecedingExpr('${arg1}') = ${actual} -> ${actual === expected ? '<span class="success">Success</span>': '<span class="failure">Failure</span>'}
+                    </div>
+                `;
+            }
+
+
+        </script>
+    </body>
+</html>

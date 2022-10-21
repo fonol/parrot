@@ -1,0 +1,6 @@
+[workspace]
+
+members = [
+    "parrot_rs",
+    "src-tauri",
+]

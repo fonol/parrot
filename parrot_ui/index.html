@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width">
+  <link rel="stylesheet" type="text/css" href="./styles/style.colors.css">
+  <link rel="preload" as="style" onload="this.onload=null;this.rel='stylesheet'" href="./styles/style.css">
+  <link rel="stylesheet" type="text/css" href="./styles/style.basics.css">
+  <link rel="stylesheet" type="text/css" href="./styles/style.tree.css">
+  <link rel="stylesheet" type="text/css" href="./styles/style.modal.css">
+  <link rel="preload" as="style" onload="this.onload=null;this.rel='stylesheet'" href="./styles/style.notifications.css">
+  <title>Parrot</title>
+</head>
+
+<body>
+  <div id='app-wrapper'></div>
+  <script src="./scripts/backend.js"></script>
+  <script src="./scripts/notifications.js"></script>
+
+  <!-- ----------------------------------------------------------------------------------- -->
+  <!-- CodeMirror -->
+  <link rel="preload" as="style" onload="this.onload=null;this.rel='stylesheet'" href="./CodeMirror/codemirror.css">
+  <script defer src="./CodeMirror/codemirror.js"></script>
+  <script defer src="./CodeMirror/commonlisp.js"></script>
+  <script defer src="./CodeMirror/vim.js"></script>
+
+
+  <!-- xterm.js -->
+  <script src="./xterm/xterm.js"></script>
+  <script src="./xterm/xterm-fit.js"></script>
+  <link rel="stylesheet" type="text/css" href="./xterm/xterm.css">
+
+</body>
+<script type="module">
+  import { html, render } from './preact-bundle.js'
+  import { App } from './components/App.js'
+  Promise.all([window.state.init(), window.config.init()])
+  .then(() => {
+    render(html`<${App}/>`, document.getElementById('app-wrapper'));
+  });
+</script>
+
+</html>
