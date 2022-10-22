@@ -286,7 +286,7 @@ fn handle_repl_commands(rec: crossbeam::channel::Receiver<SlynkAnswer>, window: 
                 emit = window.emit("term-write", Payload { text });
             }
             else if let ChannelMethod::WriteValues(values) = method {
-                emit = window.emit("term-write", Payload { text: values.join("\n") });
+                emit = window.emit("term-write", Payload { text: values.iter().map(|vtup| vtup.0.as_str()).collect::<Vec<&str>>().join("\n") });
             }
             else if let ChannelMethod::EvaluationAborted(message) = method {
                 emit = window.emit("term-write", Payload { text: format!("; Evaluation aborted on {}", message) });

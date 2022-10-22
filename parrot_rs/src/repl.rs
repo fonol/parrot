@@ -25,7 +25,7 @@ lazy_static! {
     static ref CONTINUATION: Regex = Regex::new(r" ([0-9]+)\)$").unwrap();
     static ref RETURN_VALUE: Regex = Regex::new("\\(:return \\(:(?:ok|abort) (?:(?P<value>.+)|(?P<nil>nil))\\) [0-9]+\\)$").unwrap();
     static ref WRITE_STRING: Regex = Regex::new("\\(:write-string \"((?:.|\n)+)\"( :repl-result)?\\)$").unwrap();
-    static ref WRITE_VALUES: Regex = Regex::new("\\(:write-values (?:\\((?:\\(\"(.+)\" [0-9]+ (\".+\"|nil)\\))+\\)|nil)\\)$").unwrap();
+    static ref WRITE_VALUES: Regex = Regex::new("\\(:write-values (?:\\((\\(\".+\" [0-9]+ (?:\".+\"|nil)\\))+\\)|nil)\\)$").unwrap();
     static ref EVALUATION_ABORTED: Regex = Regex::new("\\(:evaluation-aborted \"(?P<message>.+)\"\\)$").unwrap();
     static ref PROMPT: Regex = Regex::new("\\(:prompt \"(.+)\" \"(.+)\" (?P<elevel>[0-9]+) (?P<len_history>[0-9]+)( \"(?P<condition>.+)\")?\\)$").unwrap();
     static ref CHANNEL_SEND: Regex = RegexBuilder::new("\\(:channel-send ([0-9]+) (\\((?:.|\n)+\\))\\)$").multi_line(true).build().unwrap();
@@ -315,7 +315,7 @@ pub enum ChannelMethod {
         condition: Option<String>
 
     }, 
-    WriteValues(Vec<String>),
+    WriteValues(Vec<(String, usize, String)>),
     WriteString(String),
     EvaluationAborted(String),
     Unknown(String)
@@ -352,7 +352,17 @@ impl ChannelMethod {
             if answer == "(:write-values nil)" {
                 return Self::WriteValues(vec![]);
             }
-            return Self::WriteValues(cap.iter().skip(1).map(|c| c.unwrap().as_str().to_string()).collect());
+            let mut values = vec![];
+            for val_tup in cap.iter().skip(1) {
+                let sp = sexp::parse(val_tup.unwrap().as_str()).unwrap();
+                if let Sexp::List(vlist) = sp {
+                    let val = sexp_string_atom(&vlist[0]).unwrap();
+                    let hlen = sexp_usize_atom(&vlist[1]).unwrap();
+                    let symbol = sexp_string_atom(&vlist[2]).unwrap();
+                    values.push((val, hlen, symbol));
+                }
+            }
+            return Self::WriteValues(values);
         }
         if answer.starts_with("(:evaluation-aborted ") {
             let cap = EVALUATION_ABORTED.captures(answer).unwrap();
@@ -842,3 +852,17 @@ fn option_str(form: &str) -> Option<String> {
     }
 }
 
+fn sexp_string_atom(sexp: &Sexp) -> BackendResult<String> {
+    if let Sexp::Atom(Atom::S(val)) = sexp {
+        Ok(val.clone())
+    } else {
+        Err(BackendError("Failed to parse sexp.".to_string()))
+    }
+}
+fn sexp_usize_atom(sexp: &Sexp) -> BackendResult<usize> {
+    if let Sexp::Atom(Atom::I(val)) = sexp {
+        Ok(*val as usize)
+    } else {
+        Err(BackendError("Failed to parse sexp.".to_string()))
+    }
+}
