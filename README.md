@@ -90,7 +90,7 @@ Plus, it is untested on Linux and Mac (I will move to Linux for development at s
 - [ ] look up function definition
 - [ ] disassemble functions
 
-** lisp code evaluation / compilation **
+**lisp code evaluation / compilation**
 
 - [x] compile and load file (C-c C-k in emacs)
 - [x] compile top-level expression around cursor (C-c C-c in emacs)
