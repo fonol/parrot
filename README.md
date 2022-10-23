@@ -73,6 +73,7 @@ Plus, it is untested on Linux and Mac (I will move to Linux for development at s
 - [x] add file
 - [ ] search
 - [ ] move files/folder by drag&drop
+- [ ] context menu: move file
 
 ##### Editor:
 
