@@ -13,6 +13,10 @@ lazy_static! {
 // public functions
 //
 
+pub fn escape_quotes(text: &str) -> String {
+    text.replace("\"", "\\\"")
+}
+
 pub fn tokenize_lowercase(text: &str) -> Vec<u64> {
     RE_TOKENIZE
         .split(&text.to_lowercase())
