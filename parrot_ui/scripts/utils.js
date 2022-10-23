@@ -101,6 +101,37 @@ export function getPrecedingExpr(textBeforeCursor) {
     }
     return textBeforeCursor.substring(startIx).trim();
 }
+export function getSymbolUnderOrBeforeCursor(textBeforeCursor, textAfterCursor) {
+    if (!textBeforeCursor && !textAfterCursor) {
+        return null;
+    }
+    let ignoreAfter = /(\n|\t| |")$/g.test(textBeforeCursor) || !textAfterCursor || !textAfterCursor.length;
+
+    textBeforeCursor = textBeforeCursor.trim();
+    let startIx = -1;
+    for (var i = textBeforeCursor.length - 1; i >= 0; i--) {
+        let c = textBeforeCursor.charAt(i);
+        if (c === '"' || c === '(' || c === ')' || c === '#' || c === ' ' || c === '\n' || c === '\t') {
+            startIx = i+1;
+            break;
+        }
+    }
+    if (startIx === -1) {
+        return null;
+    }
+    if (!ignoreAfter) {
+        let endIx = 0;
+        for (var i = 0; i < textAfterCursor.length; i++) {
+            let c = textAfterCursor.charAt(i);
+            if (c === '"' || c === '(' || c === ')' || c === '#' || c === ' ' || c === '\n' || c === '\t') {
+                endIx = i;
+                break;
+            }
+        }
+        return textBeforeCursor.substring(startIx) + textAfterCursor.substring(0, endIx);
+    }
+    return textBeforeCursor.substring(startIx);
+}
 
 export function getSurroundingTopLevelExpr(textBeforeCursor, textAfterCursor, cursorPos, cursorLine, cursorCol) {
 

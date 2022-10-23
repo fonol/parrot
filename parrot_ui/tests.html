@@ -9,10 +9,17 @@
 
         </div>
         <script type="module">
-            import { getSurroundingTopLevelExpr, getPrecedingExpr } from './scripts/utils.js'
+            import { getSurroundingTopLevelExpr, getPrecedingExpr, getSymbolUnderOrBeforeCursor } from './scripts/utils.js'
             let el = document.getElementById('tests')
 
+            //
+            // This is a very simple test suite for some of the utility functions from utils.js
+            // Which are mostly about selecting forms / expressions close to the cursor.
+            //
+
+            //
             // testing getSurroundingTopLevelExpr()
+            //
             let testsGetSurroundingTopLevelExpr = [
                     ['', '', null],
                     [' ', ' ', null],
@@ -35,18 +42,20 @@
                     ['(','defun prompt-read (prompt) (format *query-io* "~a: " prompt) (force-output *query-io*) (read-line *query-io*))', '(defun prompt-read (prompt) (format *query-io* "~a: " prompt) (force-output *query-io*) (read-line *query-io*))'],
                     ['(defun prompt-read (prompt) (format *query-io* "~a: " prompt) (force-output *query-io*) (read-line *query-io*)',')', '(defun prompt-read (prompt) (format *query-io* "~a: " prompt) (force-output *query-io*) (read-line *query-io*))'],
                 ];
-            for (let [before, after, res] of testsGetSurroundingTopLevelExpr) {
+            for (let [before, after, expected] of testsGetSurroundingTopLevelExpr) {
                 let actual = getSurroundingTopLevelExpr(before, after);
                 if (actual) {
                     actual = actual.text;
                 }
                 el.innerHTML += `
                     <div>
-                        getSurroundingTopLevelExpr('${before}', '${after}') = ${actual} -> ${actual === res ? '<span class="success">Success</span>': '<span class="failure">Failure</span>'}
+                        getSurroundingTopLevelExpr('${before}', '${after}') = ${actual} ${actual === expected ? '<span class="success">Success</span>': '<span class="failure">Failure</span>'}
                     </div>
                 `;
             }
+            //
             // testing getPrecedingExpr()
+            //
             let testsGetPrecedingExpr = [
                     ['', null],
                     [' ', null],
@@ -72,7 +81,30 @@
                 let actual = getPrecedingExpr(arg1);
                 el.innerHTML += `
                     <div>
-                        getPrecedingExpr('${arg1}') = ${actual} -> ${actual === expected ? '<span class="success">Success</span>': '<span class="failure">Failure</span>'}
+                        getPrecedingExpr('${arg1}') = ${actual ? "'"+actual+"'" : actual} ${actual === expected ? '<span class="success">Success</span>': ('<span class="failure">Failure: Expected = '+expected+'</span>')}
+                    </div>
+                `;
+            }
+            //
+            // testing getSymbolUnderOrBeforeCursor()
+            //
+            let testsGetSymbolUnderOrBeforeCursor = [
+                    ['', '', null],
+                    [' ', '', null],
+                    [' ', ' ', null],
+                    ['\n', '', null],
+                    ['', 'test', null],
+                    ['(defun test', ' () ()', 'test'],
+                    ['(defun test ', '() ()', 'test'],
+                    ['(defun ', 'test () ()', 'defun'],
+                    ['(defun', ' test () ()', 'defun'],
+                    ['(defun test (arg1 arg2) (format t', ' "hola")', 't'],
+                ];
+            for (let [before, after, expected] of testsGetSymbolUnderOrBeforeCursor) {
+                let actual = getSymbolUnderOrBeforeCursor(before, after);
+                el.innerHTML += `
+                    <div>
+                        getSymbolUnderOrBeforeCursor('${before}', '${after}') = ${actual ? "'"+actual+"'" : actual} ${actual === expected ? '<span class="success">Success</span>': ('<span class="failure">Failure: Expected = '+expected+'</span>')}
                     </div>
                 `;
             }
@@ -80,4 +112,4 @@
 
         </script>
     </body>
-</html>
+</html>'
