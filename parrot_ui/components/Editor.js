@@ -90,9 +90,6 @@ export class Editor extends Component {
 
         let vimMode = window.config.get('vim_mode');
         let vimAltEsc = window.config.get('vim_esc');
-        let compileAndLoadFileShortCut = window.config.get('shortcut_compile_and_load_file') || 'Shift-Ctrl-L';
-        let compileTopLevelShortCut = window.config.get('shortcut_compile_top_level') || 'Shift-Ctrl-C';
-        let evalLastExprShortCut = window.config.get('shortcut_eval_last_expression') || 'Shift-Ctrl-E';
         let showLineNumbers = window.config.get('show_line_numbers');
 
         if (!this.editor) {
@@ -121,9 +118,18 @@ export class Editor extends Component {
             }
         }
         let map = {};
-        map[compileAndLoadFileShortCut] = this.replCompileAndLoadFile.bind(this);
-        map[compileTopLevelShortCut] = this.compileTopLevelForm.bind(this);
-        map[evalLastExprShortCut] = this.evalLastExprBeforeCursor.bind(this);
+        let compileAndLoadFileShortCut = window.config.get('shortcut_compile_and_load_file');
+        if (compileAndLoadFileShortCut) {
+            map[compileAndLoadFileShortCut] = this.replCompileAndLoadFile.bind(this);
+        }
+        let compileTopLevelShortCut = window.config.get('shortcut_compile_top_level');
+        if (compileTopLevelShortCut) {
+            map[compileTopLevelShortCut] = this.compileTopLevelForm.bind(this);
+        }
+        let evalLastExprShortCut = window.config.get('shortcut_eval_last_expression');
+        if (evalLastExprShortCut) {
+            map[evalLastExprShortCut] = this.evalLastExprBeforeCursor.bind(this);
+        }
         this.editor.addKeyMap(map);
 
 
