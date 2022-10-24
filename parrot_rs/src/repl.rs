@@ -13,7 +13,7 @@ use std::thread::sleep;
 use std::time::Duration;
 use os_pipe::{self, PipeWriter};
 use utf8_chars::BufReadCharsExt;
-use crate::text::{trim_quotes, unescape_quotes};
+use crate::text::{trim_quotes, unescape_quotes, escape_quotes};
 use crate::{BackendResult, BackendError};
 use lazy_static::lazy_static;
 use sexp::{self, Atom, Sexp};
@@ -23,13 +23,14 @@ pub const STOP_SIG: &str = "REPL~QUIT";
 lazy_static! {
     // parsing swank :return messages
     static ref CONTINUATION: Regex = Regex::new(r" ([0-9]+)\)$").unwrap();
-    static ref RETURN_VALUE: Regex = Regex::new("\\(:return \\(:(?:ok|abort) (?:(?P<value>.+)|(?P<nil>nil))\\) [0-9]+\\)$").unwrap();
+    static ref RETURN_VALUE: Regex = RegexBuilder::new("\\(:return \\(:(?:ok|abort) (?:(?P<value>(?:.|\n|\t)+)|(?P<nil>nil))\\) [0-9]+\\)$").multi_line(true).build().unwrap();
+    static ref FIND_DEFINITION_RESULT: Regex = RegexBuilder::new("(?:\\((\\(\"(?P<label>.+)\" \\(:location \\(:file \"(?P<file>.+)\"\\) \\(:position (?P<pos>[0-9]+)\\) \\(:snippet \"(?P<snippet>(?:.|\n|\t)+)\"\\)\\)\\) ?)+\\)|(?P<nil>nil))$").multi_line(true).build().unwrap();
     static ref WRITE_STRING: Regex = Regex::new("\\(:write-string \"((?:.|\n)+)\"( :repl-result)?\\)$").unwrap();
     static ref WRITE_VALUES: Regex = Regex::new("\\(:write-values (?:\\((\\(\".+\" [0-9]+ (?:\".+\"|nil)\\))+\\)|nil)\\)$").unwrap();
     static ref EVALUATION_ABORTED: Regex = Regex::new("\\(:evaluation-aborted \"(?P<message>.+)\"\\)$").unwrap();
     static ref PROMPT: Regex = Regex::new("\\(:prompt \"(.+)\" \"(.+)\" (?P<elevel>[0-9]+) (?P<len_history>[0-9]+)( \"(?P<condition>.+)\")?\\)$").unwrap();
     static ref CHANNEL_SEND: Regex = RegexBuilder::new("\\(:channel-send ([0-9]+) (\\((?:.|\n)+\\))\\)$").multi_line(true).build().unwrap();
-    static ref COMPILATION_RESULT: Regex = RegexBuilder::new("\\(:compilation-result (?P<notes>nil|\".+\"|\\((\\(.+\\))+\\)) (?P<success>nil|t) (?P<duration>[0-9]+\\.[0-9]+) (?P<loadp>nil|t) (?P<faslfile>nil|\".+\")\\)$").multi_line(true).build().unwrap();
+    static ref COMPILATION_RESULT: Regex = RegexBuilder::new("\\(:compilation-result (?P<notes>nil|\".+\"|\\((\\(.+\\))+\\)) (?P<success>nil|t) (?P<duration>[0-9]+\\.[0-9]+) (?P<loadp>nil|t) (?P<faslfile>nil|\".+\")\\)$").dot_matches_new_line(true).build().unwrap();
     static ref COMPILER_NOTES: Regex = RegexBuilder::new("\\((\\(:message \"(?P<message>.+)\" :severity :(?P<severity>[^ ]+) :location \\(:location \\(:file \"(?P<file>.+)\"\\) \\(:position .+\\) nil\\) :references .+\\))+\\)").build().unwrap();
 }
 ///
@@ -57,6 +58,10 @@ pub enum SlynkAnswer {
         duration: f64,
         loadp: bool,
         fasl_file: Option<String>
+    },
+    ReturnFindDefinitionResult {
+        continuation: usize,
+        definitions: Vec<FoundDefinition>
     },
     Debug {
         thread: usize,
@@ -132,8 +137,24 @@ impl SlynkAnswer {
                     .unwrap()
                     .as_str()
                     .replace("\\\"", "\"");
-            
-            if COMPILATION_RESULT.is_match(&value) {
+
+            if FIND_DEFINITION_RESULT.is_match(&value) {
+                let mut definitions = vec![];
+                for c in FIND_DEFINITION_RESULT.captures_iter(&value) {
+                    let label = c.name("label").unwrap().as_str().to_string();
+                    let file = c.name("file").map(|m| m.as_str().to_string());
+                    let position = c.name("pos").unwrap().as_str().parse::<usize>().unwrap();
+                    let snippet = c.name("snippet").unwrap().as_str().to_string();
+                    definitions.push(FoundDefinition {
+                        label, 
+                        file,
+                        position,
+                        snippet
+                    });
+                } 
+                Self::ReturnFindDefinitionResult { continuation, definitions } 
+
+            } else if COMPILATION_RESULT.is_match(&value) {
 
                 captures = COMPILATION_RESULT.captures(&value).unwrap();
                 let cnotes = captures.name("notes").unwrap().as_str();
@@ -306,6 +327,14 @@ pub struct CompilerNotes {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct FoundDefinition {
+    pub label: String,
+    pub file: Option<String>,
+    pub position: usize,
+    pub snippet: String
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub enum ChannelMethod {
     Prompt{
         package: String,
@@ -392,6 +421,7 @@ pub enum SlynkMessage {
     InvokeNthRestart(usize, usize, usize),
     CompileAndLoadFile(String),
     LoadFile(String),
+    FindDefinitions(String),
     Stop,
     EmacsReturn(String, usize, usize),
     CompileStringForEmacs{
@@ -414,6 +444,7 @@ pub enum ContinuationCallback {
     PrintReturnValue(PrintKind),
     Print(String, PrintKind),
     LoadFile,
+    JumpToDef
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -629,6 +660,8 @@ impl REPL {
                                         sender_tcp.send(SlynkAnswer::WriteString { value: trim_quotes(message.clone()), repl_result: false }).expect("Could not send"),
                                     ContinuationCallback::Print(message, PrintKind::Notification) => 
                                         sender_tcp.send(SlynkAnswer::Notify { text: trim_quotes(message.clone()), error: !matches!(status, &ReturnStatus::Ok) }).expect("Could not send"),
+                                    ContinuationCallback::JumpToDef => 
+                                        sender_tcp.send(SlynkAnswer::Notify { text: value.clone(), error: !matches!(status, &ReturnStatus::Ok) }).expect("Could not send"),
                                      _ => ()
                                 }
                             }
@@ -649,6 +682,20 @@ impl REPL {
                                 }
                             }
                          },
+                        //  SlynkAnswer::ReturnFindDefinitionResult { continuation, definitions, .. } => {
+                        //     if rets.contains_key(continuation) {
+                        //         match rets[continuation] {
+                        //             ContinuationCallback::JumpToDef => {
+                        //                 if definitions.is_empty() {
+                        //                     sender_tcp.send(SlynkAnswer::Notify { text: "Failed to find definition.".to_string(), error: true }).expect("Could not send");
+                        //                 } else {
+                        //                     sender_tcp.send(SlynkAnswer::Notify { text: definitions.iter().map(|d| d.label.as_str()).collect::<Vec<&str>>().join("\n"), error: false }).expect("Could not send");
+                        //                 }
+                        //             },
+                        //             _ => ()
+                        //         }
+                        //     }
+                        //  },
                         _ => {
 
                         }
@@ -683,11 +730,11 @@ impl REPL {
                     let message_body =  match &message_to_send {
 
                         SlynkMessage::Eval(form)  => {
-                            let escaped = form.replace("\"", "\\\"");
+                            let escaped = escape_quotes(form);
                             emacs_channel_send(&format!("(:process \"{}\")", escaped), 1)
                         },
                         SlynkMessage::InteractiveEval(form) => {
-                            let escaped = form.replace("\"", "\\\"");
+                            let escaped = escape_quotes(form);
                             pending_handle_in.lock().unwrap().insert(continuation, ContinuationCallback::PrintReturnValue(PrintKind::Notification));
                             emacs_rex(&format!("(slynk:interactive-eval \"{}\")", escaped), &package_handle.lock().unwrap(), &continuation)
                         },
@@ -698,6 +745,11 @@ impl REPL {
                         SlynkMessage::LoadFile(path) => {
                             pending_handle_in.lock().unwrap().insert(continuation, ContinuationCallback::Print("File loaded.".to_string(), PrintKind::Repl));
                             emacs_rex(&format!("(slynk:load-file \"{}\")", trim_quotes(path.clone())), &package_handle.lock().unwrap(), &continuation)
+                        },
+                        SlynkMessage::FindDefinitions(symbol) => {
+                            let escaped = escape_quotes(symbol);
+                            pending_handle_in.lock().unwrap().insert(continuation, ContinuationCallback::JumpToDef);
+                            emacs_rex(&format!("(slynk:find-definitions-for-emacs \"{}\")", escaped), &package_handle.lock().unwrap(), &continuation)
                         },
                         SlynkMessage::Stop => { 
                             emacs_rex("(slynk:quit-lisp)", &package_handle.lock().unwrap(), &continuation)
@@ -711,7 +763,7 @@ impl REPL {
                         SlynkMessage::CompileStringForEmacs{ string, buffer, position, filename, policy} => {
                             // ignoring policy for now
                             let fname = nil_or_string(filename.to_owned());
-                            let escaped = string.replace("\"", "\\\"");
+                            let escaped = escape_quotes(string);
                             emacs_rex_thread(&format!("(slynk:compile-string-for-emacs \"{}\" \"{}\" '((:position {}) (:line {} {})) {} 'nil)", escaped, buffer, position.pos, position.line, position.col, fname),  &package_handle.lock().unwrap(), 1, &continuation)
                         }
                     };
@@ -812,6 +864,12 @@ impl REPL {
         self.slynk_repl_sender.send(SlynkMessage::InteractiveEval(form))?;
         Ok(())
     }
+    // e.g. M-x sly-edit-definition in Emacs
+    pub fn find_definition_for_symbol(&mut self, symbol: String) -> BackendResult<()> {
+        self.slynk_repl_sender.send(SlynkMessage::FindDefinitions(symbol))?;
+        Ok(())
+    }
+
     pub fn emacs_return(&mut self, form: &str, thread: usize, tag: usize) -> BackendResult<()> {
         self.slynk_repl_sender.send(SlynkMessage::EmacsReturn(form.to_string(), thread, tag))?;
         Ok(())

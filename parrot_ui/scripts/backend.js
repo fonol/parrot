@@ -21,6 +21,7 @@ window.backend = new function() {
     this.replInvokeNthRestart = (level, n, thread) => invoke('repl_invoke_nth_restart', { level: level, n: n, thread: thread });
     this.replEmacsReturn = (form, thread, tag) => invoke('repl_emacs_return', { form: form, thread: thread, tag: tag });
     this.interactiveEvalForm = (form) => invoke('interactive_eval_form', { form: form });
+    this.findDefinition = (symbol) => invoke('find_definition', { symbol: symbol });
 
     //
     // SBCL
@@ -74,6 +75,10 @@ window.__TAURI__.event.listen('set-prompt', (event) => {
     if (event.payload.Prompt) {
         window.app.setPrompt(event.payload.Prompt);
     }
+});
+window.__TAURI__.event.listen('jump', (event) => {
+    console.log(event);
+    window.app.jumpTo(event.payload.ReturnFindDefinitionResult);
 });
 window.__TAURI__.event.listen('notify-success', (event) => {
     window.notifications.show(event.payload.text);

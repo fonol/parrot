@@ -67,6 +67,7 @@ fn main() {
             repl_invoke_nth_restart,
             repl_emacs_return,
             interactive_eval_form,
+            find_definition,
 
             get_sbcl_process_stdout_stderr,
 
@@ -172,6 +173,13 @@ fn interactive_eval_form(form: String) {
         .unwrap()
         .interactive_eval_form(form);
 }
+#[tauri::command]
+fn find_definition(symbol: String) {
+    REPL
+        .lock()
+        .unwrap()
+        .find_definition_for_symbol(symbol);
+}
 
 //
 // SBCL
@@ -262,6 +270,12 @@ fn print_sbcl_output_to_terminal(output: Vec<String>, window: Window) {
     window.emit("term-write", Payload { text: "SBCL process output:\n".to_string()}).unwrap();
     window.emit("term-write", Payload { text: output.join("") }).unwrap();
 }
+fn notify_error(message: &str, window: &Window) -> Result<(), tauri::Error> {
+    window.emit("notify-error", Payload { text: message.to_string() })
+}
+fn notify_success(message: &str, window: &Window) -> Result<(), tauri::Error> {
+    window.emit("notify-success", Payload { text: message.to_string() })
+}
 
 fn handle_repl_commands(rec: crossbeam::channel::Receiver<SlynkAnswer>, window: Window) {
     for m in rec {
@@ -270,9 +284,9 @@ fn handle_repl_commands(rec: crossbeam::channel::Receiver<SlynkAnswer>, window: 
             emit = window.emit("term-write", Payload { text: value });
         } else if let SlynkAnswer::Notify { text, error } = m {
             if error {
-                emit = window.emit("notify-error", Payload { text });
+                emit = notify_error(&text, &window);
             } else {
-                emit = window.emit("notify-success", Payload { text });
+                emit = notify_success(&text, &window);
             }
         } else if matches!(m, SlynkAnswer::Debug {..}) {
             emit = window.emit("debug", m);
@@ -304,10 +318,12 @@ fn handle_repl_commands(rec: crossbeam::channel::Receiver<SlynkAnswer>, window: 
                     .collect::<Vec<String>>().join("\n")}).unwrap();
             }
             if success {
-                emit = window.emit("notify-success", Payload {text: format!("Compiled [{}s].", duration)});
+                emit = notify_success(&format!("Compiled [{}s].", duration), &window);
             } else {
-                emit = window.emit("notify-error", Payload {text: String::from("Failed to compile.")});
+                emit = notify_error("Failed to compile.", &window);
             }
+        } else if let SlynkAnswer::ReturnFindDefinitionResult { .. } = &m {
+            emit = window.emit("jump", m.clone());
         };
         emit.expect("Could not send event to main window");
     }
