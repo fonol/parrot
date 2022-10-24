@@ -105,7 +105,7 @@ export function getSymbolUnderOrBeforeCursor(textBeforeCursor, textAfterCursor) 
     if (!textBeforeCursor && !textAfterCursor) {
         return null;
     }
-    let ignoreAfter = /(\n|\t| |")$/g.test(textBeforeCursor) || !textAfterCursor || !textAfterCursor.length;
+    let ignoreAfter = /(\n|\t| |")$/g.test(textBeforeCursor)|| !textAfterCursor || !textAfterCursor.length || /^(\n|\t| |"| )/g.test(textAfterCursor) ;
 
     textBeforeCursor = textBeforeCursor.trim();
     let startIx = -1;
@@ -114,6 +114,9 @@ export function getSymbolUnderOrBeforeCursor(textBeforeCursor, textAfterCursor) 
         if (c === '"' || c === '(' || c === ')' || c === '#' || c === ' ' || c === '\n' || c === '\t') {
             startIx = i+1;
             break;
+        }
+        if (i === 0) {
+            startIx = 0;
         }
     }
     if (startIx === -1) {
@@ -125,6 +128,10 @@ export function getSymbolUnderOrBeforeCursor(textBeforeCursor, textAfterCursor) 
             let c = textAfterCursor.charAt(i);
             if (c === '"' || c === '(' || c === ')' || c === '#' || c === ' ' || c === '\n' || c === '\t') {
                 endIx = i;
+                break;
+            }
+            if (i === textAfterCursor.length - 1) {
+                endIx = i + 1;
                 break;
             }
         }
