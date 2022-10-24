@@ -1,6 +1,6 @@
 import { html, Component } from '../preact-bundle.js';
 import { createRef } from '../preact-10.7.js';
-import { getSurroundingTopLevelExpr, getLeafNameWithExtension, getPrecedingExpr } from '../scripts/utils.js';
+import { getSurroundingTopLevelExpr, getSymbolUnderOrBeforeCursor, getLeafNameWithExtension, getPrecedingExpr } from '../scripts/utils.js';
 
 
 
@@ -54,6 +54,28 @@ export class Editor extends Component {
             this.setState({ content: currentValue }, this.initEditor);
         } else {
             this.initEditor();
+        }
+    }
+    /**
+     * Focus the editor and set the cursor at the given position.
+     * @param {*} pos 1-based absolute position
+     */
+    setCursorToPosition(pos) {
+        let lines = this.editor.getValue().split('\n');
+        let cpos = 0;
+        let line = -1;
+        let ch = -1;
+        for (let l = 0; l < lines.length; l++) {
+            if (lines[l].length + 1 + cpos >= pos) {
+                line = l;
+                ch =  pos - cpos-1;
+                break;
+            }
+            cpos += lines[l].length + 1;
+        }
+        if (line !== -1) {
+            this.editor.focus();
+            this.editor.setCursor({line: line, ch: ch})
         }
     }
 
@@ -130,6 +152,11 @@ export class Editor extends Component {
         if (evalLastExprShortCut) {
             map[evalLastExprShortCut] = this.evalLastExprBeforeCursor.bind(this);
         }
+        let findDefinitionShortCut = window.config.get('shortcut_find_definition');
+        if (findDefinitionShortCut) {
+            map[findDefinitionShortCut] = this.findDefintion.bind(this);
+        }
+
         this.editor.addKeyMap(map);
 
 
@@ -197,6 +224,16 @@ export class Editor extends Component {
         } else {
             window.app.writeToREPL(`\x1b[38;5;246mLoading buffer \x1b[0m\x1b[48;5;28m Scratch \x1b[0m`);
             backend.replEval(this.editor.getDoc().getValue());
+        }
+    }
+    findDefintion() {
+        let before = this.getTextBeforeCursor();
+        let after = this.getTextAfterCursor();
+        let form = getSymbolUnderOrBeforeCursor(before, after);
+        if (form && form.length) {
+            backend.findDefinition(form);
+        } else {
+            notifications.error("Could not find form under or before cursor.");
         }
     }
     getCursorPosition() {

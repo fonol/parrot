@@ -30,6 +30,17 @@ export class EditorTabs extends Component {
             return state;
         });
     }
+    openAtPosition(filePath, pos) {
+        this.setState(state => {
+            if (!state.opened.includes(filePath)) {
+                state.opened.push(filePath);
+            }
+            state.active = filePath;
+            return state;
+        }, () => { 
+            this.editor.current.setCursorToPosition(pos);
+        });
+    }
     refresh() {
         console.log('EditorTabs:refresh()');
         this.editor.current.refresh();

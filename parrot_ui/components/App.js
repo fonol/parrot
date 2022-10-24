@@ -157,6 +157,15 @@ export class App extends Component {
         window.notifications.error(message);
         this.repl.current.writeError(message);
     }
+    jumpTo(foundDefs) {
+        if (!foundDefs.definitions.length) {
+            window.notifications.error('Did not find any definitions.');
+        } else if (foundDefs.definitions.length === 1) {
+            this.tabs.current.openAtPosition(foundDefs.definitions[0].file, foundDefs.definitions[0].position);
+        } else {
+            // todo: show overlay asking for which file
+        }
+    }
     onEditorTermSepMouseDown(e) {
 
         let termWidth = this.termCol.current.offsetWidth;
