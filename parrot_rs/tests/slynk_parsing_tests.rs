@@ -13,3 +13,17 @@ fn parse_compilation_result_failed() {
         panic!("Wrong enum variant")
     }
 }
+#[test]
+fn parse_find_definition_result() {
+    let parsed = SlynkAnswer::parse(r#"(:return (:ok (("(DEFUN POST)" (:location (:file "path/to/testing.lisp") (:position 41) (:snippet "(defun post ()       
+    (format t \"post\"))
+"))))) 3)"#);
+    assert!(matches!(parsed, SlynkAnswer::ReturnFindDefinitionResult { .. }));
+
+    if let SlynkAnswer::ReturnFindDefinitionResult {  definitions, .. } = parsed {
+        assert!(definitions.len()==1);
+        assert_eq!(Some(&String::from("path/to/testing.lisp")), definitions[0].file.as_ref());
+    } else {
+        panic!("Wrong enum variant")
+    }
+}
