@@ -35,3 +35,6 @@ pub enum FileTreeNodeType {
     Dir,
     Other,
 }
+
+pub type LispForm = String;
+pub type SymbolName = String;
