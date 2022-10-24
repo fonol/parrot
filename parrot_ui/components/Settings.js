@@ -12,12 +12,13 @@ export class Settings extends Component {
         shortcutCompileAndLoadFile: window.config.get('shortcut_compile_and_load_file'),
         shortcutCompileToplevel: window.config.get('shortcut_compile_top_level'),
         shortcutEvalLastExpression: window.config.get('shortcut_eval_last_expression'),
+        shortcutFindDefinition: window.config.get('shortcut_find_definition'),
         showLineNumbers: config.get('show_line_numbers')
       };
         if (typeof this.props.accept !== 'function') {
             console.error("Settings: missing accept prop");
         }
-    }
+    } 
     componentDidMount() {
     }
     componentDidUpdate(prevProps) {
@@ -39,6 +40,7 @@ export class Settings extends Component {
         window.config.set('show_line_numbers', this.state.showLineNumbers);
         window.config.set('shortcut_compile_top_level', this.state.shortcutCompileToplevel);
         window.config.set('shortcut_eval_last_expression', this.state.shortcutEvalLastExpression);
+        window.config.set('shortcut_find_definition', this.state.shortcutFindDefinition);
         window.config.write();
         this.props.accept();
     }
@@ -84,6 +86,13 @@ export class Settings extends Component {
                                         <div>Shortcut in CodeMirror syntax, e.g. "Shift-Ctrl-E", "Alt-E"</div>
                                         <div>
                                             <input type="text" value=${this.state.shortcutEvalLastExpression} onChange=${e => this.setState({shortcutEvalLastExpression: e.target.value})}/>
+                                        </div>
+                                    </div>
+                                    <div class="settings-item">
+                                        <div>Find definition</div>
+                                        <div>Find definition of symbol before or under the cursor.<br/>Shortcut in CodeMirror syntax, e.g. "Shift-Ctrl-D", "Alt-D"</div>
+                                        <div>
+                                            <input type="text" value=${this.state.shortcutFindDefinition} onChange=${e => this.setState({shortcutFindDefinition: e.target.value})}/>
                                         </div>
                                     </div>
                                     <div class="settings-item">
