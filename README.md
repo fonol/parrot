@@ -83,6 +83,9 @@ Plus, it is untested on Linux and Mac (I will move to Linux for development at s
 - [x] make shortcuts from settings work
 - [ ] autocomplete / suggestions
 - [ ] jump to definition
+	- [x] jump to position
+	- [ ] handle multiple definitions found: show overlay/modal to pick one
+	- [ ] handle definition outside current source files (e.g. built-in functions)
 - [ ] structured editing a la paredit
 - [ ] shortcut to jump between repl and source file
 - [ ] search and replace in file
@@ -94,6 +97,7 @@ Plus, it is untested on Linux and Mac (I will move to Linux for development at s
 **lisp code evaluation / compilation**
 
 - [x] compile and load file (C-c C-k in emacs)
+ 	- [ ] autosave before executing shortcut?
 - [x] compile top-level expression around cursor (C-c C-c in emacs)
 - [x] evaluate expression before cursor (C-x C-e in emacs)
 - [ ] macro expansion
