@@ -17,6 +17,7 @@ pub mod file;
 pub mod text;
 pub mod models;
 pub mod state;
+pub mod parsing;
 
 #[derive(Serialize, Debug, PartialOrd, PartialEq)]
 pub enum ConfigValueStatus {
