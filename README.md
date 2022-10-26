@@ -74,6 +74,7 @@ Plus, it is untested on Linux and Mac (I will move to Linux for development at s
 - [ ] search
 - [ ] move files/folder by drag&drop
 - [ ] context menu: move file
+- [ ] context menu: rename file
 
 ##### Editor:
 
@@ -109,13 +110,15 @@ Plus, it is untested on Linux and Mac (I will move to Linux for development at s
 - [ ] setting: Slynk socket
 - [ ] setting: Path to SBCL
 - [ ] settting: .fasl file directory
-- [x] toggle line numbers
-- [x] enable/disable vim mode
-- [x] vim mode: set shortcut to toggle normal mode/insert mode
-- [x] shortcut: compile and load file
-- [x] shortcut: compile top-level expression
-- [x] shortcut: evaluate expression before cursor
-- [ ] setting: which file types to show in the file tree
+- [x] setting: toggle line numbers
+- [x] setting: enable/disable vim mode
+- [x] setting: vim mode: set shortcut to toggle normal mode/insert mode
+- [x] setting: shortcut - compile and load file
+- [x] setting: shortcut - compile top-level expression
+- [x] setting: shortuct - evaluate expression before cursor
+- [ ] setting: file types to show in the file tree
+- [ ] setting: editor font size
+- [ ] setting: editor font family
 - [ ] alternative themes
 	- [ ] would require some theming mechanism, e.g. using css vars everywhere
 
