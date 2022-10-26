@@ -17,6 +17,7 @@ use crate::text::{trim_quotes, unescape_quotes, escape_quotes};
 use crate::{BackendResult, BackendError};
 use lazy_static::lazy_static;
 use sexp::{self, Atom, Sexp};
+use crate::parsing::*;
 
 pub const STOP_SIG: &str = "REPL~QUIT"; 
 
@@ -24,13 +25,13 @@ lazy_static! {
     // parsing swank :return messages
     static ref CONTINUATION: Regex = Regex::new(r" ([0-9]+)\)$").unwrap();
     static ref RETURN_VALUE: Regex = RegexBuilder::new("\\(:return \\(:(?:ok|abort) (?:(?P<value>(?:.|\n|\t)+)|(?P<nil>nil))\\) [0-9]+\\)$").multi_line(true).build().unwrap();
-    static ref FIND_DEFINITION_RESULT: Regex = RegexBuilder::new("(?:\\((\\(\"(?P<label>.+)\" \\(:location \\(:file \"(?P<file>.+)\"\\) \\(:position (?P<pos>[0-9]+)\\) \\(:snippet \"(?P<snippet>(?:.|\n|\t)+)\"\\)\\)\\) ?)+\\)|(?P<nil>nil))$").multi_line(true).build().unwrap();
+    static ref FIND_DEFINITION_RESULT: Regex = RegexBuilder::new(" ?(?:\\((\\(\"(?P<label>(?:.|\n|\t)+?)\" \\(:location \\(:file \"(?P<file>.+)\"\\) \\(:position (?P<pos>[0-9]+)\\) (?:\\(:snippet \"(?P<snippet>(?:.|\n|\t)+)\"\\)|nil)\\)\\) ?)+\\)|(?P<nil>nil))$").multi_line(true).build().unwrap();
     static ref WRITE_STRING: Regex = Regex::new("\\(:write-string \"((?:.|\n)+)\"( :repl-result)?\\)$").unwrap();
     static ref WRITE_VALUES: Regex = Regex::new("\\(:write-values (?:\\((\\(\".+\" [0-9]+ (?:\".+\"|nil)\\))+\\)|nil)\\)$").unwrap();
-    static ref EVALUATION_ABORTED: Regex = Regex::new("\\(:evaluation-aborted \"(?P<message>.+)\"\\)$").unwrap();
+    static ref EVALUATION_ABORTED: Regex = Regex::new(" ?\\(:evaluation-aborted \"(?P<message>.+)\"\\)$").unwrap();
     static ref PROMPT: Regex = Regex::new("\\(:prompt \"(.+)\" \"(.+)\" (?P<elevel>[0-9]+) (?P<len_history>[0-9]+)( \"(?P<condition>.+)\")?\\)$").unwrap();
     static ref CHANNEL_SEND: Regex = RegexBuilder::new("\\(:channel-send ([0-9]+) (\\((?:.|\n)+\\))\\)$").multi_line(true).build().unwrap();
-    static ref COMPILATION_RESULT: Regex = RegexBuilder::new("\\(:compilation-result (?P<notes>nil|\".+\"|\\((\\(.+\\))+\\)) (?P<success>nil|t) (?P<duration>[0-9]+\\.[0-9]+) (?P<loadp>nil|t) (?P<faslfile>nil|\".+\")\\)$").dot_matches_new_line(true).build().unwrap();
+    static ref COMPILATION_RESULT: Regex = RegexBuilder::new(" ?\\(:compilation-result (?P<notes>nil|\".+\"|\\((\\(.+\\))+\\)) (?P<success>nil|t) (?P<duration>[0-9]+\\.[0-9]+) (?P<loadp>nil|t) (?P<faslfile>nil|\".+\")\\)$").dot_matches_new_line(true).build().unwrap();
     static ref COMPILER_NOTES: Regex = RegexBuilder::new("\\((\\(:message \"(?P<message>.+)\" :severity :(?P<severity>[^ ]+) :location \\(:location \\(:file \"(?P<file>.+)\"\\) \\(:position .+\\) nil\\) :references .+\\))+\\)").build().unwrap();
 }
 ///
@@ -136,22 +137,32 @@ impl SlynkAnswer {
                     .or(captures.name("nil"))
                     .unwrap()
                     .as_str()
-                    .replace("\\\"", "\"");
+                    .to_string();
 
             if FIND_DEFINITION_RESULT.is_match(&value) {
+                let sexp_parsed = clean_and_parse_sexp(&value).unwrap();
                 let mut definitions = vec![];
-                for c in FIND_DEFINITION_RESULT.captures_iter(&value) {
-                    let label = c.name("label").unwrap().as_str().to_string();
-                    let file = c.name("file").map(|m| m.as_str().to_string());
-                    let position = c.name("pos").unwrap().as_str().parse::<usize>().unwrap();
-                    let snippet = c.name("snippet").unwrap().as_str().to_string();
+                for def in sexp_children(sexp_parsed).unwrap() {
+                    let label = sexp_list_nth_as_string(&def, 0).unwrap();
+                    let location = sexp_list_nth(&def, 1).unwrap();
+                    let lfile = sexp_list_nth(&location, 1).unwrap();
+                    let file = sexp_list_nth_as_string(&lfile, 1).unwrap();
+                    let lpos = sexp_list_nth(&location, 2).unwrap();
+                    let position = sexp_list_nth_as_usize(&lpos, 1).unwrap();
+                    let lsnippet = sexp_list_nth(&location, 3).unwrap();
+                    let snippet = if sexp_is_nil(&lsnippet) {
+                        None
+                    } else {
+                        Some(sexp_list_nth_as_string(&lsnippet, 1).unwrap())
+                    };
                     definitions.push(FoundDefinition {
                         label, 
                         file,
                         position,
                         snippet
                     });
-                } 
+                }
+
                 Self::ReturnFindDefinitionResult { continuation, definitions } 
 
             } else if COMPILATION_RESULT.is_match(&value) {
@@ -183,7 +194,7 @@ impl SlynkAnswer {
             } else {
                 Self::Return {
                     continuation,
-                    value: value,
+                    value: value.replace("\\\"", "\""),
                     status: status
                 }
             }
@@ -329,9 +340,9 @@ pub struct CompilerNotes {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct FoundDefinition {
     pub label: String,
-    pub file: Option<String>,
+    pub file: String,
     pub position: usize,
-    pub snippet: String
+    pub snippet: Option<String>
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -682,20 +693,6 @@ impl REPL {
                                 }
                             }
                          },
-                        //  SlynkAnswer::ReturnFindDefinitionResult { continuation, definitions, .. } => {
-                        //     if rets.contains_key(continuation) {
-                        //         match rets[continuation] {
-                        //             ContinuationCallback::JumpToDef => {
-                        //                 if definitions.is_empty() {
-                        //                     sender_tcp.send(SlynkAnswer::Notify { text: "Failed to find definition.".to_string(), error: true }).expect("Could not send");
-                        //                 } else {
-                        //                     sender_tcp.send(SlynkAnswer::Notify { text: definitions.iter().map(|d| d.label.as_str()).collect::<Vec<&str>>().join("\n"), error: false }).expect("Could not send");
-                        //                 }
-                        //             },
-                        //             _ => ()
-                        //         }
-                        //     }
-                        //  },
                         _ => {
 
                         }
@@ -907,20 +904,5 @@ fn option_str(form: &str) -> Option<String> {
     match form {
         "nil" => None,
         v => Some(v.to_string())
-    }
-}
-
-fn sexp_string_atom(sexp: &Sexp) -> BackendResult<String> {
-    if let Sexp::Atom(Atom::S(val)) = sexp {
-        Ok(val.clone())
-    } else {
-        Err(BackendError("Failed to parse sexp.".to_string()))
-    }
-}
-fn sexp_usize_atom(sexp: &Sexp) -> BackendResult<usize> {
-    if let Sexp::Atom(Atom::I(val)) = sexp {
-        Ok(*val as usize)
-    } else {
-        Err(BackendError("Failed to parse sexp.".to_string()))
     }
 }
