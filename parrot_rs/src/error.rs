@@ -30,3 +30,8 @@ impl From<SendError<SlynkMessage>> for BackendError {
         BackendError(String::from("[Crossbeam] Failed to send"))
     }
 }
+impl From<sexp::Error> for BackendError {
+    fn from(_: sexp::Error) -> BackendError {
+        BackendError(String::from("[sexp] Failed to parse"))
+    }
+}
