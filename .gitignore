@@ -1,4 +1,4 @@
 node_modules/*
 target/*
 .vscode/*
-.lisp_test/*
+test_project/*
