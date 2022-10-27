@@ -665,9 +665,12 @@ code {
 .settings-cats > div {
   padding: 10px 15px;
   cursor: pointer;
-  border-radius: 3px;
 }
 .settings-cats > div:hover {
+  background-color: rgb(59, 53, 46);
+}
+.settings-cats > div.active {
+  color: var(--active-primary-color);
   background-color: rgb(59, 53, 46);
 }
 .settings-item {
