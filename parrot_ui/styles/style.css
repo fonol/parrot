@@ -88,8 +88,11 @@ input {
 input::placeholder {
   font-family: 'Rubik' !important;
 }
-input:disabled {
+input:disabled, input.disabled {
   color: #685b44 !important;
+  background: #2e2922 !important;
+  border-color: #3c3327 !important;
+  pointer-events: none;
 }
 input[type="number"] {
   font-size: 13px;
@@ -535,6 +538,12 @@ code {
   top: calc(50% - 10px);
   cursor: pointer;
 }
+.folder-input-outer.disabled .folder-input-icn {
+  opacity: 0.5;
+}
+.folder-input-outer.disabled .folder-clear-icn {
+  display: none !important;
+}
 .folder-input-outer input {
   padding-left: 40px;
   padding-right: 35px;
@@ -550,6 +559,12 @@ code {
   left: 10px;
   top: calc(50% - 7px);
   font-size: 13px;
+}
+.lisp-file-name-input-outer.disabled .lisp-file-name-input-icn {
+  opacity: 0.5;
+}
+.lisp-file-name-input-outer.disabled .lisp-file-name-clear-icn {
+  display: none !important;
 }
 .lisp-file-name-clear-icn {
   position: absolute;
@@ -618,7 +633,7 @@ code {
   background-color: var(--editor-bg);
 }
 .tabs__header {
-  padding: 10px  15px;
+  padding: 8px  15px;
   cursor: pointer;
   background-color: #322b24;
   color: var(--text-secondary-color);

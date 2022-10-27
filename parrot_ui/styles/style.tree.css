@@ -158,20 +158,18 @@ ul {
     position: absolute;
     background: var(--pane-bg);
     border: 1px solid var(--pane-border-color);
-    padding: 10px;
+    padding: 5px 0 0 0;
     border-radius: 3px;
     z-index: 60;
     min-width: 200px;
   }
   .context-menu > div {
     cursor: pointer;
-    padding: 3px 15px;
+    padding: 5px 15px;
     font-size: 15px;
-    border-radius: 3px;
   }
   .context-menu > div:not(.context-menu-header):hover {
-    background-color: var(--pane-bg);
-    filter: brightness(1.1);
+    background-color: #3a332b;
   }
   .context-menu > .context-menu-header {
     cursor: default;

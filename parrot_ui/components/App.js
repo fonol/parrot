@@ -9,6 +9,8 @@ import { Settings } from './Settings.js';
 import { DebugOverlay } from './DebugOverlay.js';
 import { REPL } from './REPL.js';
 import { ReadInputDialog } from './ReadInputDialog.js';
+import { RenameDialog } from './RenameDialog.js';
+import { ConfirmDeleteDirDialog } from './ConfirmDeleteDirDialog.js';
 import { SBCLOutputDialog } from './SBCLOutputDialog.js';
 
 export class App extends Component {
@@ -27,6 +29,14 @@ export class App extends Component {
                 show: false,
                 folder: null
             },
+            renameDialog: {
+                show: false,
+                path: null
+            },
+            deleteDirDialog: {
+                show: false,
+                path: null
+            },
             showSettings: false,
             configDiagnostics: null,
             debug: null,
@@ -43,6 +53,9 @@ export class App extends Component {
         this.tabs = createRef();
         this.initTermColW = window.state.getOrDefault('term-col-width', 700);
 
+        window.$bus.on('show-rename', this.showRenameDialog.bind(this));
+        window.$bus.on('show-new-file', this.showNewFileDialog.bind(this));
+        window.$bus.on('show-delete-dir', this.showDeleteDirDialog.bind(this));
     }
     componentDidMount() {
         console.log('App::componentDidMount()');
@@ -119,7 +132,7 @@ export class App extends Component {
         this.setState({ showSettings: false });
         notifications.show('Settings updated.');
     }
-    openNewFileDialog(folderPath) {
+    showNewFileDialog(folderPath) {
         folderPath = folderPath || this.state.folder;
         this.setState(state => {
             state.newFileDialog.show = true;
@@ -200,7 +213,52 @@ export class App extends Component {
     showSBCLOutputDialog() {
         this.setState({ showSBCLOutputDialog: true});
     }
+    showRenameDialog(path) {
+        this.setState(s => {
+            s.renameDialog.show = true;
+            s.renameDialog.path = path;
+            return s;
+        })
+    }
     
+    onRenameDialogAccepted(newFullPath) {
+        this.setState(s => {
+            s.renameDialog.show = false;
+            s.renameDialog.path = null;
+            return s;
+        })
+    }
+    showDeleteDirDialog(path) {
+        let self = this;
+        backend.dirIsEmpty(path)
+            .then((empty) => {
+                if (empty) {
+                    self.deleteDir(path);
+                } else {
+                    self.setState(state => {
+                        state.deleteDirDialog.show = true;
+                        state.deleteDirDialog.path = path;
+                        return state;
+                    })
+                }
+            })
+    }
+    deleteDir(path) {
+        let self = this;
+        backend.deleteDir(path)
+        .then(() => {
+            window.notifications.show("Deleted directory.");
+            $bus.trigger('dir-deleted');
+        }).catch(window.notifications.error);
+    }
+    onDeleteDirAccept() {
+        this.deleteDir(this.state.deleteDirDialog.path)
+        this.setState(state => {
+            state.deleteDirDialog.show = false;
+            state.deleteDirDialog.path = null;
+            return state;
+        });
+    }
 
     render() {
         return html`
@@ -320,6 +378,19 @@ export class App extends Component {
                 <${SBCLOutputDialog}
                     hide=${() => this.setState({ showSBCLOutputDialog: false })}
                 ></${SBCLOutputDialog}>
+            `}
+            ${this.state.renameDialog.show && html`
+                <${RenameDialog}
+                    path=${this.state.renameDialog.path}
+                    hide=${() => this.setState(s => { s.renameDialog.show = false; return s; })}
+                    accept=${this.onRenameDialogAccepted.bind(this)}
+                ></${RenameDialog}>
+            `}
+            ${this.state.deleteDirDialog.show && html`
+                <${ConfirmDeleteDirDialog} 
+                    accept=${this.onDeleteDirAccept.bind(this)}
+                    cancel=${() => { this.setState(st => { st.deleteDirDialog.show = false; return st; })}}
+                ></${ConfirmDeleteDirDialog}>
             `}
 
         </div>

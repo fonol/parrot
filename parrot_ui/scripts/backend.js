@@ -35,6 +35,8 @@ window.backend = new function() {
     this.saveFileContent = (path, content) => invoke('save_file_content', { path: path, content: content });
     this.addLispFile = (folder, name) => invoke('add_lisp_file', { folder: folder, name: name });
     this.deleteFile = (path) => invoke('delete_file', { path: path });
+    this.renameFileOrFolder = (oldPath, newName) => invoke('rename_file_or_folder', { oldPath: oldPath, newName: newName });
+    this.fileExists = (path) => invoke('path_exists', { path: path });
 
     //
     // folders
@@ -42,6 +44,7 @@ window.backend = new function() {
     this.createSubdir = (parent, name) => invoke('create_subdir', { parent: parent, name: name });
     this.deleteDir = (path) => invoke('delete_dir', { path: path });
     this.dirIsEmpty = (path) => invoke('dir_is_empty', { path: path });
+    this.isDir = (path) => invoke('is_dir', { path: path });
 
     //
     // state

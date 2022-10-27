@@ -35,11 +35,11 @@ export class LispFileNameInput extends Component {
     }
     render() {
       return html`
-         <div class="lisp-file-name-input-outer">
+         <div className=${'lisp-file-name-input-outer' + (this.props.disabled ? ' disabled': '')}>
             <div class="lisp-file-name-input-icn">
                 λ 
             </div>
-            <input className=${'w-100' + (!this.state.input || !this.state.input.length || this.fileNameIsValid() ? '': ' invalid')} 
+            <input className=${'w-100' + (this.props.disabled ? ' disabled': '') + (!this.state.input || !this.state.input.length || this.fileNameIsValid() ? '': ' invalid')} 
                 ref=${this.inp} 
                 type="text" 
                 value=${this.state.input} 

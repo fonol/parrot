@@ -1,15 +1,19 @@
 export function fileNameIsValid(fname) {
-    let r1 =/^[^/:*?"<>|]+$/; // forbidden characters \ / : * ? " < > |
-    let r2 =/^\./; // cannot start with dot (.)
-    let r3 =/^(nul|prn|con|lpt[0-9]|com[0-9])(\.|$)/i; // forbidden file names
+    let r1 =/^[^/:*?"<>|]+$/; 
+    let r2 =/^\./; 
+    let r3 =/^(nul|prn|con|lpt[0-9]|com[0-9])(\.|$)/i;
     return r1.test(fname)&&!r2.test(fname)&&!r3.test(fname);
 }
-
 export function getLeafNameWithExtension(fpath) {
     return fpath.split('\\').pop().split('/').pop();
 }
 export function getLeafNameWithoutExtension(fpath) {
-    return fpath.split('\\').pop().split('/').pop().replace(/.(lisp|cl)$/gi, '');
+    let pathRepl = fpath.replace(/\\/g, '/');
+    if (pathRepl.endsWith('/')) {
+        pathRepl = pathRepl.replace(/\/$/g, '');
+        return pathRepl.substring(pathRepl.lastIndexOf('/')+1);
+    }
+    return pathRepl.substring(pathRepl.lastIndexOf('/')+1).replace(/.(lisp|cl)$/gi, '');
 }
 export function getFolderNameFromFile(path) {
     let pathRepl = path.replace(/\\/g, '/');

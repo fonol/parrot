@@ -6,7 +6,7 @@
 use parrot_rs::{self, BackendResult, repl::{STOP_SIG, SlynkAnswer, ChannelMethod, EditorPosition}, config::Config, ConfigDiagnostics};
 use serde::Serialize;
 use tauri::{Window};
-use std::{sync::{Mutex}, collections::HashMap};
+use std::{sync::{Mutex}, collections::HashMap, path::Path};
 use lazy_static::lazy_static;
 use crossbeam;
 
@@ -75,10 +75,13 @@ fn main() {
             save_file_content,
             add_lisp_file,
             delete_file,
+            rename_file_or_folder,
+            file_exists,
 
             create_subdir,
             delete_dir,
             dir_is_empty,
+            is_dir,
 
             get_state,
             get_state_value,
@@ -230,6 +233,14 @@ fn add_lisp_file(folder: &str, name: &str) -> BackendResult<String> {
 fn delete_file(path: &str) -> BackendResult<()> {
     parrot_rs::file::delete_file(path)
 }
+#[tauri::command]
+fn rename_file_or_folder(old_path: &str, new_name: &str) -> BackendResult<()> {
+    parrot_rs::file::rename_file_or_folder(old_path, new_name)
+}
+#[tauri::command]
+fn file_exists(path: &str) -> BackendResult<bool> {
+    Ok(Path::new(path).exists())
+}
 
 //
 // dirs
@@ -246,6 +257,10 @@ fn delete_dir(path: &str) -> BackendResult<()> {
 #[tauri::command]
 fn dir_is_empty(path: &str) -> BackendResult<bool> {
     parrot_rs::file::dir_is_empty(path)
+}
+#[tauri::command]
+fn is_dir(path: &str) -> BackendResult<bool> {
+    Ok(Path::new(path).is_dir())
 }
 
 

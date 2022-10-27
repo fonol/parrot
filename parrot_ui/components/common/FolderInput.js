@@ -29,15 +29,15 @@ export class FolderInput extends Component {
         this.props.onChange('');
     }
     render() {
-      return html`
-         <div class="folder-input-outer">
+        return html`
+         <div className=${'folder-input-outer' + (this.props.disabled ? ' disabled': '')}>
             <svg height="20" class="folder-input-icn" viewBox="0 0 512 512"><path d="M440 432H72a40 40 0 01-40-40V120a40 40 0 0140-40h75.89a40 40 0 0122.19 6.72l27.84 18.56a40 40 0 0022.19 6.72H440a40 40 0 0140 40v240a40 40 0 01-40 40zM32 192h448" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="32"/></svg>
-            <input class="w-100" 
+            <input className=${'w-100 ' + (this.props.disabled ? 'disabled': '')}
                 ref=${this.inp} 
                 type="text" 
                 value=${this.state.input} 
                 onInput=${(e) => this.onInputChange(e)}
-                placeholder="Folder path"/>
+                placeholder=${this.props.placeholder || 'Folder path'} />
 
             ${this.state.input && this.state.input.length && html`
                 <svg onClick=${this.clear.bind(this)} height="20" 
