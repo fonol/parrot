@@ -639,6 +639,7 @@ code {
   color: var(--text-secondary-color);
   display: flex;
   align-items: center;
+  white-space: nowrap;
   justify-content: center;
 }
 .tabs__header:hover {
