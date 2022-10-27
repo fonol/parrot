@@ -74,7 +74,7 @@ Plus, it is untested on Linux and Mac (I will move to Linux for development at s
 - [ ] search
 - [ ] move files/folder by drag&drop
 - [ ] context menu: move file
-- [ ] context menu: rename file
+- [x] context menu: rename file
 
 ##### Editor:
 
