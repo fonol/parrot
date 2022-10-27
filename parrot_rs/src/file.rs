@@ -38,6 +38,26 @@ pub fn delete_file<P: AsRef<Path>>(path: P) -> BackendResult<()> {
     std::fs::remove_file(path)?;
     Ok(())
 }
+pub fn rename_file_or_folder<P: AsRef<Path>>(old_path: P, new_name: &str) -> BackendResult<()> {
+    if !old_path.as_ref().exists() {
+        return Err(BackendError(format!("File/folder does not exist: {}", old_path.as_ref().to_str().unwrap())))
+    }
+    let stem = old_path.as_ref()
+        .parent()
+        .unwrap();
+    let mut new_path = stem.join(new_name);
+    if let Some(ext) = old_path.as_ref().extension() {
+        if new_path.extension().is_none() {
+            new_path.set_extension(ext);
+        }
+    }
+
+    if new_path.exists() {
+        return Err(BackendError("This already exists.".to_string()));
+    }
+    std::fs::rename(old_path, new_path)?;
+    Ok(())
+}
 
 pub fn create_subdir(parent_path: &str, folder_name: &str) -> BackendResult<String> {
     let path = Path::new(parent_path).join(Path::new(folder_name));
