@@ -33,7 +33,7 @@ export class ConfirmDeleteDirDialog extends Component {
                     Confirm deletion of this directory
                 </div>
                 <div class="modal-body ta-center flex-col" style="align-items: center; padding: 20px;">
-                    This will delete the directory and all its contents. Are you sure?
+                    This will delete the directory and all its contents.<br/>Are you sure?
                     <button className=${'btn-square-100 mb-10 mt-20 ' + (s.confirm ? 'active':'')} onClick=${() => this.setState({confirm: !this.state.confirm})}>
                         Click to confirm
                     </button>
