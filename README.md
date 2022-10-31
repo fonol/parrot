@@ -31,6 +31,7 @@ Plus, it is untested on Linux and Mac (I will move to Linux for development at s
 #### Some more or less current screenshots
 
 <img src="/devlog/ui.jpg" width="1000">
+<img src="/devlog/search.jpg" width="1000">
 <img src="/devlog/load-file-debug-dialog.jpg" width="1000">
 <img src="/devlog/settings-dialog.jpg" width="600">
 
