@@ -244,7 +244,11 @@ fn save_file_content(path: &str, content: &str) -> BackendResult<()> {
 }
 #[tauri::command]
 fn add_lisp_file(folder: &str, name: &str) -> BackendResult<String> {
-    parrot_rs::file::create_lisp_file(folder, name)
+    let fpath = parrot_rs::file::create_lisp_file(folder, name)?;
+    INDEX.lock()
+        .unwrap()
+        .add_document(&fpath)?;
+    Ok(fpath)
 }
 #[tauri::command]
 fn delete_file(path: &str) -> BackendResult<()> {
@@ -252,7 +256,14 @@ fn delete_file(path: &str) -> BackendResult<()> {
 }
 #[tauri::command]
 fn rename_file_or_folder(old_path: &str, new_name: &str) -> BackendResult<()> {
-    parrot_rs::file::rename_file_or_folder(old_path, new_name)
+    let is_dir = Path::new(old_path).is_dir();
+    let new_path = parrot_rs::file::rename_file_or_folder(old_path, new_name)?;
+    if is_dir {
+        INDEX.lock()
+            .unwrap()
+            .handle_dir_rename(old_path, &new_path);
+    }
+    Ok(())
 }
 #[tauri::command]
 fn file_exists(path: &str) -> BackendResult<bool> {

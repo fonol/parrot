@@ -77,13 +77,37 @@ impl Index {
             println!("WARN: Doc for path {} not found.", file_path_old);
         }
     }
+    pub fn handle_dir_rename(&mut self, dir_path_old: &str, dir_path_new: &str) {
+        debug_assert!(Path::new(dir_path_new).is_absolute());
+        debug_assert!(Path::new(dir_path_old).is_absolute());
+
+        let dir_path_old_rel = to_rel_path(self.root_folder.clone().unwrap().as_str(), dir_path_old);
+        let doc_ids = self.get_documents_in_dir_rec(&dir_path_old_rel);
+        for doc_id in doc_ids {
+            let doc = self.remove_document(doc_id);
+            let new_file_path = Path::new(dir_path_new).join(Path::new(&doc.path)
+                    .strip_prefix(&dir_path_old_rel)
+                    .expect("File should start with old folder path"));
+            self.add_document(new_file_path).expect("File should exist");
+        }
+
+    }
+
     pub fn handle_files_deletion<P: AsRef<Path>>(&mut self, abs_paths: &Vec<P>) {
         for p in abs_paths {
             self.remove_document_if_existing(p);
         }
     }
     pub fn remove_document_if_existing<P: AsRef<Path>>(&mut self, fpath: P) -> Option<Document> {
-        if let Some((docs_id, doc)) = self.get_document(fpath.as_ref().to_str().unwrap()) {
+        if let Some((docs_id, _)) = self.get_document(fpath.as_ref().to_str().unwrap()) {
+            let doc = self.remove_document(docs_id);
+            Some(doc)
+        } else {
+            println!("WARN: Doc for path {} not found.", fpath.as_ref().to_str().unwrap());
+            None
+        }
+    }
+    pub fn remove_document(&mut self, docs_id: DocId) -> Document {
             // 1. delete the file in content token -> file index
             self.index_file_contents.retain(|doc_id, _| docs_id.ne(doc_id));
 
@@ -94,23 +118,19 @@ impl Index {
             self.index_file_names.retain(|_, v| !v.is_empty());
 
             // 4. delete the file in documents index
-            self.documents.remove(&docs_id);
-            let rel_path = to_rel_path(self.root_folder.as_ref().unwrap().as_str(), fpath.as_ref().to_str().unwrap());
-            let doc_id = self.doc_ids.remove(&rel_path).unwrap();
-            Some(doc)
-        } else {
-            println!("WARN: Doc for path {} not found.", fpath.as_ref().to_str().unwrap());
-            None
-        }
+            let doc = self.documents.remove(&docs_id).unwrap();
+            // let rel_path = to_rel_path(self.root_folder.as_ref().unwrap().as_str(), fpath.as_ref().to_str().unwrap());
+            self.doc_ids.retain(|k, v| v.clone().ne(&docs_id));
+            doc
     }
 
-    pub fn add_document(&mut self, fpath: &str) -> BackendResult<DocId> {
-        let pth = Path::new(fpath);
+    pub fn add_document<P: AsRef<Path>>(&mut self, fpath: P) -> BackendResult<DocId> {
+        let pth =fpath.as_ref();
 
         debug_assert!(pth.exists());
         debug_assert!(pth.is_absolute());
 
-        let rel_path = to_rel_path(self.root_folder.as_ref().unwrap().as_str(), fpath);
+        let rel_path = to_rel_path(Path::new(self.root_folder.as_ref().unwrap()), fpath.as_ref());
         let doc_id = self.unused_doc_id();
 
         let tokens = ngram_tokenize_lowercase(&rel_path, NGRAM_SIZE);
@@ -389,6 +409,15 @@ impl Index {
         doc
     }
 
+    fn get_documents_in_dir_rec<P: AsRef<Path>>(&self, dir_path: P) -> Vec<DocId> {
+        self
+            .documents
+            .iter()
+            .filter(|e| Path::new(&e.1.path).starts_with(dir_path.as_ref()))
+            .map(|v| *v.0)
+            .collect()
+    }
+
     fn get_documents_id(&self, path: &str) -> Option<DocId> {
         let docs_id = self
             .documents
@@ -398,8 +427,8 @@ impl Index {
 
         docs_id
     }
-}
 
+}
 
 fn path_to_file_type(path: &Path) -> FileType {
     if path.is_dir() {

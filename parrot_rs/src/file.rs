@@ -45,7 +45,7 @@ pub fn delete_file<P: AsRef<Path>>(path: P) -> BackendResult<()> {
     std::fs::remove_file(path)?;
     Ok(())
 }
-pub fn rename_file_or_folder<P: AsRef<Path>>(old_path: P, new_name: &str) -> BackendResult<()> {
+pub fn rename_file_or_folder<P: AsRef<Path>>(old_path: P, new_name: &str) -> BackendResult<String> {
     if !old_path.as_ref().exists() {
         return Err(BackendError(format!("File/folder does not exist: {}", old_path.as_ref().to_str().unwrap())))
     }
@@ -62,8 +62,8 @@ pub fn rename_file_or_folder<P: AsRef<Path>>(old_path: P, new_name: &str) -> Bac
     if new_path.exists() {
         return Err(BackendError("This already exists.".to_string()));
     }
-    std::fs::rename(old_path, new_path)?;
-    Ok(())
+    std::fs::rename(&old_path, &new_path)?;
+    Ok(new_path.to_str().unwrap().to_string())
 }
 
 pub fn create_subdir(parent_path: &str, folder_name: &str) -> BackendResult<String> {
