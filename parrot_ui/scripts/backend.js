@@ -9,6 +9,7 @@ window.backend = new function() {
 
     this.checkConfig = () => invoke('check_config');
     this.initRepl = () => invoke('init_repl');
+    this.folderOpened = (folder) => invoke('folder_opened', { folder: folder });
     this.getFileTree = (folder) => invoke('get_file_tree', { folder: folder });
 
     //
@@ -45,6 +46,11 @@ window.backend = new function() {
     this.deleteDir = (path) => invoke('delete_dir', { path: path });
     this.dirIsEmpty = (path) => invoke('dir_is_empty', { path: path });
     this.isDir = (path) => invoke('is_dir', { path: path });
+
+    //
+    // search
+    //
+    this.searchSourceFiles = (query, ignoreCase, isRegex) => invoke('search_source_files', { query: query, ignoreCase: ignoreCase, isRegex: isRegex });
 
     //
     // state

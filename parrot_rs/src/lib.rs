@@ -9,6 +9,7 @@ use serde::Serialize;
 use std::net::SocketAddr;
 
 
+pub mod fts;
 pub mod error;
 pub mod config;
 pub mod repl;

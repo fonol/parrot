@@ -61,7 +61,41 @@ pub fn ngram_tokenize_lowercase_unique(text: &str, n: usize) -> Vec<u64> {
     ngrams
 }
 
-#[inline(always)]
+
+///
+/// Returns a triple of (line index, starting position (nth character) of text in line, line)
+/// 
+pub fn get_line_from_byte_offset(text: &str, byte_offset: usize) -> (usize, usize, String) {
+    let mut offset: usize = 0;
+    for (ix, l) in text.split_inclusive('\n').enumerate() {
+        offset += l.bytes().len();
+        if offset >= byte_offset {
+            let mut line_pos_bytes = byte_offset - (offset - l.bytes().len());
+            // println!("get_line_from_byte_offset. line_pos_bytes = {}", line_pos_bytes);
+            let line_pos_char = &l[0..line_pos_bytes].chars().count();
+            return (ix, *line_pos_char, l.to_string());
+        }
+    }
+    panic!("This should not happen: byte_offset should always be inside the text.");
+}
+pub fn get_surrounding_context(text: &str, char_pos: usize, window_size: usize) -> String {
+    let start_ix = if char_pos <= window_size {
+        0
+    } else {
+        char_pos - window_size
+    };
+    let end_ix = if char_pos + window_size >= text.chars().count() {
+        text.chars().count()
+    } else {
+        char_pos + window_size
+    };
+    text.chars()
+        .skip(start_ix)
+        .take(end_ix - start_ix)
+        .collect()
+
+}
+
 pub fn u64_hash(text: &str) -> u64 {
     let mut s = DefaultHasher::new();
     text.hash(&mut s);

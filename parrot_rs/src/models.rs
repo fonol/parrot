@@ -30,7 +30,6 @@ impl FileTreeNode {
 
 #[derive(Debug, Clone, Deserialize, Serialize)]
 pub enum FileTreeNodeType {
-    Pdf,
     Lisp,
     Dir,
     Other,

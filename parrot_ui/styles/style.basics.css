@@ -32,6 +32,9 @@
 .flex-row.flex-center {
   align-items: center;
 }
+.flex-row.flex-stretch {
+  align-items: stretch;
+}
 
 .flex-col {
   display: flex;
@@ -124,3 +127,4 @@
 .hide-if-empty:empty {
   display: none;
 }
+.hidden { display: none; }

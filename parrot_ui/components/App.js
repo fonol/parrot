@@ -12,6 +12,7 @@ import { ReadInputDialog } from './ReadInputDialog.js';
 import { RenameDialog } from './RenameDialog.js';
 import { ConfirmDeleteDirDialog } from './ConfirmDeleteDirDialog.js';
 import { SBCLOutputDialog } from './SBCLOutputDialog.js';
+import { SearchPane } from './SearchPane.js';
 
 export class App extends Component {
     constructor(props) {
@@ -24,6 +25,7 @@ export class App extends Component {
             lastOpenedFolders: lastOpenedFolders,
             tree: null,
             loadingTree: false,
+            navActive: 'tree',
 
             newFileDialog: {
                 show: false,
@@ -51,6 +53,7 @@ export class App extends Component {
         this.repl = createRef();
         this.termCol = createRef();
         this.tabs = createRef();
+        this.search = createRef();
         this.initTermColW = window.state.getOrDefault('term-col-width', 700);
 
         window.$bus.on('show-rename', this.showRenameDialog.bind(this));
@@ -107,6 +110,9 @@ export class App extends Component {
             this.openFolder(folder);
         }
     }
+    hasOpenedFolder() {
+        return this.state.folder && this.state.folder !== '';
+    }
     openFolder(folder) {
 
         let lastOpened = state.getOrDefault('lastOpenedFolders', []);
@@ -115,9 +121,11 @@ export class App extends Component {
             lastOpened.splice(0, lastOpened.length - 10);
         }
         this.setState({ lastOpenedFolders: lastOpened, folder: folder, loadingTree: true });
+        window.openedFolder = folder;
         state.set('lastOpenedFolders', lastOpened);
         let self = this;
 
+        backend.folderOpened(folder);
         backend.getFileTree(folder)
         .then((tree) => {
             self.setState({ tree: JSON.parse(tree), loadingTree: false });
@@ -259,6 +267,17 @@ export class App extends Component {
             return state;
         });
     }
+    onNavClicked(navCat) {
+        if (this.state.navActive === navCat) {
+            this.setState({ navActive: null });
+        } else {
+            this.setState({ navActive: navCat });
+            if (navCat === 'search') {
+                this.search.current.refresh();
+            }
+        }
+
+    }
 
     render() {
         return html`
@@ -294,7 +313,11 @@ export class App extends Component {
 
             </div>
             <div class="flex-row flex-1 overflow-hidden">
-                <div class="tree-pane">
+                <div class="nav-pane">
+                    <svg className=${this.state.navActive === 'tree' ? 'active': ''} onClick=${() => this.onNavClicked('tree')}  height="25" width="25" viewBox="0 0 512 512"><path d="M384 80H128c-26 0-43 14-48 40L48 272v112a48.14 48.14 0 0048 48h320a48.14 48.14 0 0048-48V272l-32-152c-5-27-23-40-48-40z" fill="none" stroke="currentColor" stroke-linejoin="round" stroke-width="32"/><path fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="32" d="M48 272h144M320 272h144M192 272a64 64 0 00128 0"/></svg>
+                    <svg className=${this.state.navActive === 'search' ? 'active': ''} onClick=${() => this.onNavClicked('search')}  height="25" width="25" viewBox="0 0 512 512"><path d="M221.09 64a157.09 157.09 0 10157.09 157.09A157.1 157.1 0 00221.09 64z" fill="none" stroke="currentColor" stroke-miterlimit="10" stroke-width="32"/><path fill="none" stroke="currentColor" stroke-linecap="round" stroke-miterlimit="10" stroke-width="32" d="M338.29 338.29L448 448"/></svg>
+                </div>
+                <div className=${'tree-pane ' + (this.state.navActive === 'tree' ? '': 'hidden')}>
                     ${this.state.tree !== null && html`
                         <${FileFolderTree}
                             context="main"
@@ -329,10 +352,12 @@ export class App extends Component {
                         </div>
                     `}
                 </div>
+                <div className=${'tree-pane ' + (this.state.navActive === 'search' ? '': 'hidden')}>
+                    <${SearchPane} ref=${this.search}>
+                    </${SearchPane}>
+                </div>
                 <div class="flex-col flex-1 overflow-hidden" style="position: relative">
-                    <${EditorTabs}
-                        ref=${this.tabs}
-                    >
+                    <${EditorTabs} ref=${this.tabs}>
                     </${EditorTabs}>
                 </div>
                 <div class="editor-term-sep" 

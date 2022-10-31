@@ -16,7 +16,17 @@ export class SearchInput extends Component {
     }
     onInputChange(event) {
         this.setState({input: event.target.value});
-        this.props.onChange(event.target.value);
+
+        if (this.props.debounce) {
+            if (this.timer) {
+                clearTimeout(this.timer);
+            }
+            this.timer = setTimeout(() => {
+                this.props.onChange(event.target.value);
+            }, this.props.debounce);
+        } else {
+            this.props.onChange(event.target.value);
+        }
     }
     focus() {
         if (this.inp.current) {

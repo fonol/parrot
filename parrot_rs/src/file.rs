@@ -8,11 +8,18 @@ pub fn is_lisp_file(path: &Path) -> bool {
         Some(os_str) => os_str == "lisp" || os_str == "cl",
     }
 }
-pub fn is_pdf_file(path: &Path) -> bool {
+pub fn is_fasl_file(path: &Path) -> bool {
     match path.extension() {
         None => false,
-        Some(os_str) => os_str == "pdf" || os_str == "PDF",
+        Some(os_str) => os_str == "fasl"
     }
+}
+
+pub fn paths_are_eq<P: AsRef<Path>>(path1: P, path2: P) -> bool {
+    path1.as_ref().eq(path2.as_ref())
+}
+pub fn normalize_path<P: AsRef<Path>>(path: P) -> String {
+    path.as_ref().to_str().unwrap().replace('\\', "/")
 }
 
 pub fn save_file_content<P: AsRef<Path>>(path: P, content: &str) -> BackendResult<()> {
@@ -78,6 +85,16 @@ pub fn create_subdir(parent_path: &str, folder_name: &str) -> BackendResult<Stri
         Err(_) => BackendResult::Err(BackendError("Other error".to_string())),
         _ => Ok(path.as_os_str().to_str().unwrap().to_string()),
     }
+}
+
+pub fn to_rel_path<P: AsRef<Path>>(root_folder: P, full_path: P) -> String {
+    full_path
+        .as_ref()
+        .strip_prefix(root_folder)
+        .unwrap()
+        .to_str()
+        .unwrap()
+        .replace('\\', "/")
 }
 
 pub fn create_lisp_file<P: AsRef<Path>>(folder: P, name: &str) -> BackendResult<String> {

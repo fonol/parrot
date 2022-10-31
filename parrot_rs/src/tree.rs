@@ -6,7 +6,7 @@ use serde_indextree::Node;
 use walkdir::{DirEntry, WalkDir};
 
 use crate::{
-    file::{is_lisp_file, is_pdf_file, path_to_node_name},
+    file::{is_lisp_file, path_to_node_name},
     models::{FileTreeNode, FileTreeNodeType},
     text::u64_hash, BackendError,
 };
@@ -83,8 +83,6 @@ pub fn get_all_lisp_file_contents_in_folder_as_iter(
 pub fn path_to_tree_node_type(path: &Path) -> FileTreeNodeType {
     if path.is_dir() {
         FileTreeNodeType::Dir
-    } else if is_pdf_file(path) {
-        FileTreeNodeType::Pdf
     } else if is_lisp_file(path) {
         FileTreeNodeType::Lisp
     } else {

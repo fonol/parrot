@@ -86,6 +86,8 @@ input {
   clear: left;
 }
 input::placeholder {
+  color: var(--text-secondary-color);
+  opacity: 0.8;
   font-family: 'Rubik' !important;
 }
 input:disabled, input.disabled {
@@ -263,6 +265,30 @@ code {
   background: #39322c;
 }
 /* End menu bar */
+/* Nav pane */
+.nav-pane {
+  flex: 0 0 auto;
+  display: flex;
+  flex-direction: column;
+  padding: 5px;
+  background-color: var(--pane-bg);
+}
+.nav-pane svg {
+  cursor: pointer;
+  color: #b99272;
+  padding: 10px;
+  border: 1px solid transparent;
+  border-radius: 3px;
+}
+.nav-pane svg.active {
+  color: var(--active-primary-color);
+}
+.nav-pane svg:hover {
+  background: hsl(33, 20%, 20%);
+  border-color: hsl(33, 22%, 30%);
+}
+
+/* End Nav pane */
 /* Tree pane */
 .tree-pane {
   border-right: 1px solid #3c3026;
@@ -593,7 +619,6 @@ code {
   padding-left: 40px;
   padding-right: 35px;
 }
-
 /* End LispValueInput */
 /* FileNameInput */
 .name-input-outer {
@@ -617,6 +642,28 @@ code {
   padding-right: 35px;
 }
 /* End FileNameInput */
+/* SearchInput */
+.search-input-outer {
+  position: relative;
+  width: 100%;
+}
+.search-input-icn {
+  position: absolute;
+  left: 10px;
+  top: calc(50% - 10px);
+  height: 20px;
+}
+.search-clear-icn {
+  position: absolute;
+  right: 10px;
+  top: calc(50% - 10px);
+  cursor: pointer;
+}
+.search-input-outer input {
+  padding-left: 40px;
+  padding-right: 35px;
+}
+/* End SearchInput */
 /* Tabs */
 .tab-wrapper {
   display: flex;
@@ -638,6 +685,7 @@ code {
   background-color: #322b24;
   color: var(--text-secondary-color);
   display: flex;
+  user-select: none;
   align-items: center;
   white-space: nowrap;
   justify-content: center;
@@ -754,3 +802,41 @@ body.resizing  {
 
 
 /* End DebugOverlay */
+/* SearchPane */
+.search-pane__search-option-btn {
+  cursor: pointer;
+  color: #b99272;
+  padding: 5px;
+  border: 1px solid transparent;
+  border-radius: 3px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  user-select: none;
+}
+.search-pane__search-option-btn.active {
+  color: var(--active-primary-color);
+}
+.search-pane__search-option-btn:hover {
+  background: hsl(33, 20%, 20%);
+  border-color: hsl(33, 22%, 30%);
+}
+.search-result-group summary {
+  user-select: none;
+  cursor: pointer;
+  padding: 5px;
+}
+.search-result-group summary:hover::marker {
+  color: var(--active-primary-color);
+}
+.search-result-group:hover {
+  background: hsl(30deg 15% 16%);
+}
+.search-result-group .match {
+  cursor: pointer;
+  padding: 2px 2px 2px 20px;
+}
+.search-result-group .match:hover {
+  background: hsl(33, 20%, 20%);
+}
+/* End SearchPane */

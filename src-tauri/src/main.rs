@@ -3,7 +3,7 @@
     windows_subsystem = "windows"
 )]
 
-use parrot_rs::{self, BackendResult, repl::{STOP_SIG, SlynkAnswer, ChannelMethod, EditorPosition}, config::Config, ConfigDiagnostics};
+use parrot_rs::{self, BackendResult, repl::{STOP_SIG, SlynkAnswer, ChannelMethod, EditorPosition}, config::Config, ConfigDiagnostics, fts::{index::Index, models::{FileContentSearchResultGroup, SourceFileSearchResult}}};
 use serde::Serialize;
 use tauri::{Window};
 use std::{sync::{Mutex}, collections::HashMap, path::Path};
@@ -39,6 +39,10 @@ lazy_static! {
         Mutex::<parrot_rs::repl::REPL>::new(repl)
     };
 
+    static ref INDEX: Mutex<Index> = {
+        Mutex::new(Index::new())
+    };
+
 }
 
 #[derive(Debug, Clone, Serialize)]
@@ -54,6 +58,7 @@ fn main() {
     tauri::Builder::default()
         .invoke_handler(tauri::generate_handler![
             init_repl,
+            folder_opened,
             get_file_tree,
 
             check_config,
@@ -82,6 +87,8 @@ fn main() {
             delete_dir,
             dir_is_empty,
             is_dir,
+
+            search_source_files,
 
             get_state,
             get_state_value,
@@ -114,6 +121,11 @@ fn init_repl(window: Window) -> BackendResult<()> {
         });
     }
     Ok(())
+}
+#[tauri::command]
+fn folder_opened(folder: String) {
+    let mut index = INDEX.lock().unwrap();
+    index.build(folder);
 }
 
 //
@@ -262,6 +274,17 @@ fn dir_is_empty(path: &str) -> BackendResult<bool> {
 fn is_dir(path: &str) -> BackendResult<bool> {
     Ok(Path::new(path).is_dir())
 }
+
+//
+// search
+//
+#[tauri::command]
+fn search_source_files(query: &str, ignore_case: bool, is_regex: bool) -> BackendResult<SourceFileSearchResult> {
+    INDEX.lock()
+        .unwrap()
+        .search_source_files(query, ignore_case, is_regex, 500)
+}
+
 
 
 //
