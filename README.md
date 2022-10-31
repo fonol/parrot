@@ -76,6 +76,14 @@ Plus, it is untested on Linux and Mac (I will move to Linux for development at s
 - [ ] context menu: move file
 - [x] context menu: rename file
 
+#### Search in Source Files
+
+- [x] basic UI
+- [x] option: regex mode
+- [x] option: match case
+- [ ] highlight matches
+- [ ] jump to source file location
+
 ##### Editor:
 
 - [x] tabs, scratch buffer
