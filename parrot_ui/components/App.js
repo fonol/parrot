@@ -105,8 +105,8 @@ export class App extends Component {
             multiple: false,
             defaultPath: '~'
           });
-        this.setState({ folder: folder });
         if (folder && folder.length) {
+            this.setState({ folder: folder });
             this.openFolder(folder);
         }
     }
