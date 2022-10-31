@@ -139,6 +139,7 @@ impl Index {
         println!("Index::build()");
         let timer_start = Instant::now();
 
+        self.root_folder = Some(root_folder.clone());
         let rc = root_folder.clone();
         let root_pth = Path::new(&rc);
         self.index_file_names.clear();
