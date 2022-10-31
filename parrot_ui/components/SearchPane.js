@@ -15,6 +15,7 @@ export class SearchPane extends Component {
 
         noFolderOpened: !window.app.hasOpenedFolder()
       };
+      $bus.on('file-saved', this.refresh.bind(this));
     } 
     refresh() {
         this.setState({

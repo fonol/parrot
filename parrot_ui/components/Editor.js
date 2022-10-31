@@ -285,7 +285,8 @@ export class Editor extends Component {
         let content = this.editor.getDoc().getValue();
         if (content !== this.state.content) {
             this.originalValue = content;
-            return window.backend.saveFileContent(this.state.path, content);
+            return window.backend.saveFileContent(this.state.path, content)
+                .then($bus.trigger('file-saved', this.state.path));
         }
         return Promise.resolve();
     }

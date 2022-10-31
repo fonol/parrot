@@ -235,7 +235,12 @@ fn get_file_content(path: &str) -> BackendResult<String> {
 }
 #[tauri::command]
 fn save_file_content(path: &str, content: &str) -> BackendResult<()> {
-    parrot_rs::file::save_file_content(path, content)
+    parrot_rs::file::save_file_content(path, content)?;
+    INDEX.lock()
+        .unwrap()
+        .handle_file_content_write(path);
+    Ok(())
+
 }
 #[tauri::command]
 fn add_lisp_file(folder: &str, name: &str) -> BackendResult<String> {
@@ -284,7 +289,6 @@ fn search_source_files(query: &str, ignore_case: bool, is_regex: bool) -> Backen
         .unwrap()
         .search_source_files(query, ignore_case, is_regex, 500)
 }
-
 
 
 //
