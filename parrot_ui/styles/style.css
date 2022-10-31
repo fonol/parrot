@@ -76,6 +76,9 @@ a:hover {
   color: #0f8dc7;
 }
 
+mark {
+  background-color: var(--active-secondary-color);
+}
 input {
   background: rgb(53 47 39);
   border: 1px solid rgb(71 60 46);

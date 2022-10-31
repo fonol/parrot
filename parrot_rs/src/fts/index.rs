@@ -234,8 +234,9 @@ impl Index {
                                 found.push(FileContentLineResult { 
                                       line: line_ix,
                                       context: ctx,
-                                      col: line_pos }
-                                    );
+                                      col: line_pos,
+                                      to_mark: m.as_str().to_string()
+                                    });
                                 count+= 1;
                                 if count >= limit {
                                     break;
@@ -253,7 +254,7 @@ impl Index {
                                     .to_str()
                                     .unwrap()
                                     .to_string(),
-                                path_to_file: doc.path.clone(),
+                                path_to_file: Path::new(&self.root_folder.as_ref().unwrap()).join(&doc.path).to_str().unwrap().to_string(),
                                 matches: found
                             });
                             file_match_count += 1;
@@ -290,8 +291,9 @@ impl Index {
                         found.push(FileContentLineResult { 
                           line: line_ix,
                           context: ctx,
-                          col: line_pos }
-                        );
+                          col: line_pos,
+                          to_mark: mi.1.to_string()
+                        });
                         count+= 1;
                         if count >= limit {
                             break;
@@ -309,7 +311,7 @@ impl Index {
                             .to_str()
                             .unwrap()
                             .to_string(),
-                        path_to_file: doc.path.clone(),
+                        path_to_file: Path::new(&self.root_folder.as_ref().unwrap()).join(&doc.path).to_str().unwrap().to_string(),
                         matches: found
                     });
                     file_match_count += 1;

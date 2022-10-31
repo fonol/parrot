@@ -11,6 +11,8 @@ export class Editor extends Component {
         path: props.path,
         content: ''
       };
+      this.loading = false;
+      this.editorInitialized = false;
       this.editor = null;
       this.editorTarget = createRef();
       this.originalValue = '';
@@ -27,6 +29,7 @@ export class Editor extends Component {
     }
     componentDidUpdate(prevProps) {
         if (prevProps.path !== this.props.path ) {
+           this.loading = true;
            this.setState({ path: this.props.path }, this.fetchFileContent);
            this.editingExistingFile = this.props.path && this.props.path.length > 0;
            this.forceUpdate();
@@ -61,6 +64,10 @@ export class Editor extends Component {
      * @param {*} pos 1-based absolute position
      */
     setCursorToPosition(pos) {
+        if (this.loading || !this.editorInitialized) {
+            setTimeout(() => { this.setCursorToPosition(pos) }, 100);
+            return;
+        }
         let lines = this.editor.getValue().split('\n');
         let cpos = 0;
         let line = -1;
@@ -78,6 +85,24 @@ export class Editor extends Component {
             this.editor.setCursor({line: line, ch: ch})
         }
     }
+    /**
+     * Focus the editor and set the cursor at the given position.
+     */
+    setCursorToLineAndCol(line, col) {
+        if (this.loading || !this.editorInitialized) {
+            setTimeout(() => { this.setCursorToLineAndCol(line, col) }, 100);
+            return;
+        }
+        let lines = this.editor.getValue()
+            .split('\n');
+        // if (line < 0 || line >= lines.length) {
+        //     notifications.error("Could not find that line in the file.");
+        //     return;
+        // }
+        notifications.show(`line:${line} col:${col}`);
+        this.editor.focus();
+        this.editor.setCursor({line: line, ch: 0})
+    }
 
     /**
      * Private
@@ -93,6 +118,8 @@ export class Editor extends Component {
             this.editingExistingFile = false;
             return;
         }
+        this.loading = true;
+        this.editorInitialized = false;
         let self = this;
         window.backend.getFileContent(this.state.path)
         .then(function (content) {
@@ -100,10 +127,12 @@ export class Editor extends Component {
             self.setState({
                 content: content
             }, self.initEditor);
+            self.loading = false;
         })
         .catch(function(errMessage) {
             // window.notifications.error(errMessage);
             self.setState({errMessage : errMessage}); 
+            self.loading = false;
         });
     }
 
@@ -162,6 +191,7 @@ export class Editor extends Component {
 
         this.editor.getDoc().setValue(this.state.content);
         this.editor.focus()
+        this.editorInitialized = true;
     }
     getTextBeforeCursor() {
         let doc = this.editor.getDoc();

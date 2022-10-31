@@ -59,6 +59,12 @@ export class SearchPane extends Component {
             })
             .catch(notifications.error);
     }
+    mark(ctx, toMark, ix) {
+        return ctx.substring(0, ix) + '<mark>' + toMark + '</mark>' + ctx.substring(ix+ toMark.length, ctx.length);
+    }
+    jumpTo(file, line, col) {
+        $bus.trigger('jump', {file: file, line: line, col: col});
+    }
 
 
 
@@ -107,20 +113,17 @@ export class SearchPane extends Component {
                                 </summary>
                                 <div>
                                     ${r.matches.map(m => html`
-                                        <div class="match">
-                                            ${m.context}
+                                        <div class="match"
+                                        onClick=${()=>{this.jumpTo(r.path_to_file, m.line, m.col)}}
+                                        dangerouslySetInnerHTML=${{ __html: this.mark(m.context, m.to_mark, m.col) }}>
                                         </div>
                                     `)}
-
-
                                 </div>
                             </details>
                         `)}
                     </div>
                 `}
             </div>
-
-            
       `;
     }
   }

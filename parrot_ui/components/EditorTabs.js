@@ -1,6 +1,6 @@
 import { html, Component } from '../preact-bundle.js';
 import { createRef } from '../preact-10.7.js';
-import { getLeafNameWithoutExtension } from '../scripts/utils.js';
+import { getLeafNameWithoutExtension, normalizePath } from '../scripts/utils.js';
 import { Editor } from './Editor.js';
 
 export class EditorTabs extends Component {
@@ -11,6 +11,7 @@ export class EditorTabs extends Component {
         active: null
       };
         this.editor = createRef();
+        $bus.on('jump', this.openAtLineAndCol.bind(this));
     }
     componentDidMount() {
     }
@@ -23,19 +24,34 @@ export class EditorTabs extends Component {
      */
     open(filePath) {
         this.setState(state => {
-            if (!state.opened.includes(filePath)) {
-                state.opened.push(filePath);
+            let pathNormalized = normalizePath(filePath);
+            if (!this.hasAlreadyOpened(pathNormalized)) {
+                state.opened.push(pathNormalized);
             }
-            state.active = filePath;
+            state.active = pathNormalized;
             return state;
         });
     }
+    openAtLineAndCol({file, line, col}) {
+        this.setState(state => {
+            let pathNormalized = normalizePath(file);
+            if (!this.hasAlreadyOpened(pathNormalized)) {
+                state.opened.push(pathNormalized);
+            }
+            state.active = pathNormalized;
+            return state;
+        }, () => { 
+            this.editor.current.setCursorToLineAndCol(line, col);
+        });
+
+    }
     openAtPosition(filePath, pos) {
         this.setState(state => {
-            if (!state.opened.includes(filePath)) {
-                state.opened.push(filePath);
+            let pathNormalized = normalizePath(filePath);
+            if (!this.hasAlreadyOpened(pathNormalized)) {
+                state.opened.push(pathNormalized);
             }
-            state.active = filePath;
+            state.active = pathNormalized;
             return state;
         }, () => { 
             this.editor.current.setCursorToPosition(pos);
@@ -69,6 +85,12 @@ export class EditorTabs extends Component {
         if (this.state.active !== filePath) {
             this.setState({ active: filePath });
         }
+    }
+    hasAlreadyOpened(fpath) {
+        if (fpath.includes('\\')) {
+            fpath = fpath.replace(/\\/g, '/');
+        }
+        return this.state.opened.some(f => f.replace(/\\/g, '/') === fpath);
     }
 
     render() {

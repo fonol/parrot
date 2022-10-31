@@ -90,7 +90,9 @@ pub struct FileContentSearchResultGroup {
 pub struct FileContentLineResult {
     pub context: String,
     pub line: usize,
-    pub col: usize
+    pub col: usize,
+    pub to_mark: String,
+
 }
 
 #[derive(Serialize, Deserialize)]
