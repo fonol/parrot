@@ -71,7 +71,6 @@ pub fn get_line_from_byte_offset(text: &str, byte_offset: usize) -> (usize, usiz
         offset += l.bytes().len();
         if offset >= byte_offset {
             let mut line_pos_bytes = byte_offset - (offset - l.bytes().len());
-            // println!("get_line_from_byte_offset. line_pos_bytes = {}", line_pos_bytes);
             let line_pos_char = &l[0..line_pos_bytes].chars().count();
             return (ix, *line_pos_char, l.to_string());
         }
