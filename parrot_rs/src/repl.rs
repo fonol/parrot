@@ -27,7 +27,7 @@ lazy_static! {
     static ref RETURN_VALUE: Regex = RegexBuilder::new("\\(:return \\(:(?:ok|abort) (?:(?P<value>(?:.|\n|\t)+)|(?P<nil>nil))\\) [0-9]+\\)$").multi_line(true).build().unwrap();
     static ref FIND_DEFINITION_RESULT: Regex = RegexBuilder::new(" ?(?:\\((\\(\"(?P<label>(?:.|\n|\t)+?)\" \\(:location \\(:file \"(?P<file>.+)\"\\) \\(:position (?P<pos>[0-9]+)\\) (?:\\(:snippet \"(?P<snippet>(?:.|\n|\t)+)\"\\)|nil)\\)\\) ?)+\\)|(?P<nil>nil))$").multi_line(true).build().unwrap();
     static ref WRITE_STRING: Regex = Regex::new("\\(:write-string \"((?:.|\n)+)\"( :repl-result)?\\)$").unwrap();
-    static ref WRITE_VALUES: Regex = Regex::new("\\(:write-values (?:\\((\\(\".+\" [0-9]+ (?:\".+\"|nil)\\))+\\)|nil)\\)$").unwrap();
+    static ref WRITE_VALUES: Regex = Regex::new("\\(:write-values (?:\\((\\(\"(?:.|\n)+\" [0-9]+ (?:\".+\"|nil)\\))+\\)|nil)\\)$").unwrap();
     static ref EVALUATION_ABORTED: Regex = Regex::new(" ?\\(:evaluation-aborted \"(?P<message>.+)\"\\)$").unwrap();
     static ref PROMPT: Regex = Regex::new("\\(:prompt \"(.+)\" \"(.+)\" (?P<elevel>[0-9]+) (?P<len_history>[0-9]+)( \"(?P<condition>.+)\")?\\)$").unwrap();
     static ref CHANNEL_SEND: Regex = RegexBuilder::new("\\(:channel-send ([0-9]+) (\\((?:.|\n)+\\))\\)$").multi_line(true).build().unwrap();
