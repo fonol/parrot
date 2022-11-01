@@ -83,6 +83,11 @@ export class EditorTabs extends Component {
             return state;
         }, self.forceUpdate);
     }
+    closeActiveEditor() {
+        if (this.state.active !== null) {
+            this.remove(this.state.active);
+        }
+    }
     setActive(filePath) {
         if (this.state.active !== filePath) {
             this.setState({ active: filePath });
@@ -116,6 +121,7 @@ export class EditorTabs extends Component {
                 <div class="tab-content">
                     <${Editor}
                         path=${this.state.active}
+                        onWantsToClose=${this.closeActiveEditor.bind(this)}
                         ref=${this.editor}
                     >
                     </${Editor}>

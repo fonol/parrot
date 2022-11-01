@@ -17,6 +17,9 @@ export class Editor extends Component {
       this.editorTarget = createRef();
       this.originalValue = '';
       this.editingExistingFile = props.path && props.path.length > 0;
+        if (typeof props.onWantsToClose !== 'function') {
+            console.error("[Editor] missing 'onWantsToClose' prop");
+        }
     }
     componentDidMount() {
         if (this.editingExistingFile) {
@@ -137,6 +140,7 @@ export class Editor extends Component {
             window.notifications.error(errMessage);
             self.setState({errMessage : errMessage}); 
             self.loading = false;
+            self.props.onWantsToClose();
         });
     }
 
