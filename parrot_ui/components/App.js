@@ -298,7 +298,7 @@ export class App extends Component {
                 <div class="menu-bar__item">
                     Edit
                     <div class="menu-bar__drop">
-                        <div class="menu-bar__drop__item" onClick=${()=> {this.setState({navActive: 'search'})}}>Find in files ...</div>
+                        <div class="menu-bar__drop__item" onClick=${() => { this.setState({ navActive: 'search' }); this.search.current.refresh(); }}>Find in files ...</div>
                         <div class="menu-bar__drop__item">Replace in files ...</div>
                     </div>
                 </div>
