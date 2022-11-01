@@ -701,6 +701,18 @@ code {
   background-color: #40372e;
   color: var(--text-primary-color);
 }
+.tabs__header > svg {
+  /* visibility: hidden; */
+  padding: 1px;
+  margin-left: 10px;
+  border-radius: 3px;
+}
+/* .tabs__header:hover > svg {
+  visibility: visible;
+} */
+.tabs__header > svg:hover {
+  background-color: #4e4840;
+}
 .tab-content {
   flex: 1;
   display: flex;
