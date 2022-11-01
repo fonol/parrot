@@ -27,7 +27,11 @@ pub fn save_file_content<P: AsRef<Path>>(path: P, content: &str) -> BackendResul
     Ok(())
 }
 pub fn get_file_content<P: AsRef<Path>>(path: P) -> BackendResult<String> {
-    Ok(std::fs::read_to_string(path)?)
+    if !path.as_ref().exists() {
+        Err(BackendError(format!("The path {:?} does not exist!", path.as_ref())))
+    } else {
+        Ok(std::fs::read_to_string(path)?)
+    }
 }
 
 pub fn path_to_node_name(path: &Path) -> &str {
