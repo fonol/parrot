@@ -13,7 +13,6 @@
 ;
 ; todo: this needs to come from config
 ;
-(setq slynk-loader::*fasl-directory* "C:/Users/tom-k/Downloads/slynk/")
 (slynk-loader:init
  :delete t         ; delete any existing SLYNK packages
  :reload t)        ; reload SLYNK, even if the SLYNK package already exists
