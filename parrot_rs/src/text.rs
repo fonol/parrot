@@ -70,14 +70,14 @@ pub fn get_line_from_byte_offset(text: &str, byte_offset: usize) -> (usize, usiz
     for (ix, l) in text.split_inclusive('\n').enumerate() {
         offset += l.bytes().len();
         if offset >= byte_offset {
-            let mut line_pos_bytes = byte_offset - (offset - l.bytes().len());
-            let line_pos_char = &l[0..line_pos_bytes].chars().count();
+            let line_pos_bytes = byte_offset - (offset - l.bytes().len());
+            let line_pos_char = &l[0..line_pos_bytes].replace('\t', "    ").chars().count();
             return (ix, *line_pos_char, l.to_string());
         }
     }
     panic!("This should not happen: byte_offset should always be inside the text.");
 }
-pub fn get_surrounding_context(text: &str, char_pos: usize, window_size: usize) -> String {
+pub fn get_surrounding_context(text: &str, char_pos: usize, window_size: usize) -> (String, usize) {
     let start_ix = if char_pos <= window_size {
         0
     } else {
@@ -88,10 +88,10 @@ pub fn get_surrounding_context(text: &str, char_pos: usize, window_size: usize) 
     } else {
         char_pos + window_size
     };
-    text.chars()
+    (text.chars()
         .skip(start_ix)
         .take(end_ix - start_ix)
-        .collect()
+        .collect(), start_ix)
 
 }
 

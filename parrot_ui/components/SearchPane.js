@@ -115,7 +115,7 @@ export class SearchPane extends Component {
                                     ${r.matches.map(m => html`
                                         <div class="match"
                                         onClick=${()=>{this.jumpTo(r.path_to_file, m.line, m.col)}}
-                                        dangerouslySetInnerHTML=${{ __html: this.mark(m.context, m.to_mark, m.col) }}>
+                                        dangerouslySetInnerHTML=${{ __html: this.mark(m.context, m.to_mark, m.to_mark_ix) }}>
                                         </div>
                                     `)}
                                 </div>

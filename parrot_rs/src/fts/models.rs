@@ -92,6 +92,7 @@ pub struct FileContentLineResult {
     pub line: usize,
     pub col: usize,
     pub to_mark: String,
+    pub to_mark_ix: usize,
 
 }
 
