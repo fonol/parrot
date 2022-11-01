@@ -12,6 +12,7 @@ export class EditorTabs extends Component {
       };
         this.editor = createRef();
         $bus.on('jump', this.openAtLineAndCol.bind(this));
+        $bus.on('jump-abs-pos', ({ filePath, pos}) => this.openAtPosition(filePath, pos));
     }
     componentDidMount() {
     }
@@ -48,6 +49,7 @@ export class EditorTabs extends Component {
     openAtPosition(filePath, pos) {
         this.setState(state => {
             let pathNormalized = normalizePath(filePath);
+            console.log('opening: ' + filePath);
             if (!this.hasAlreadyOpened(pathNormalized)) {
                 state.opened.push(pathNormalized);
             }

@@ -13,6 +13,7 @@ import { RenameDialog } from './RenameDialog.js';
 import { ConfirmDeleteDirDialog } from './ConfirmDeleteDirDialog.js';
 import { SBCLOutputDialog } from './SBCLOutputDialog.js';
 import { SearchPane } from './SearchPane.js';
+import { FoundDefinitionsDialog } from './FoundDefinitionsDialog.js';
 
 export class App extends Component {
     constructor(props) {
@@ -38,6 +39,10 @@ export class App extends Component {
             deleteDirDialog: {
                 show: false,
                 path: null
+            },
+            foundDefsDialog: {
+                show: false,
+                data: []
             },
             showSettings: false,
             configDiagnostics: null,
@@ -178,13 +183,18 @@ export class App extends Component {
         window.notifications.error(message);
         this.repl.current.writeError(message);
     }
-    jumpTo(foundDefs) {
+    handleFoundDefinitions(foundDefs) {
         if (!foundDefs.definitions.length) {
             window.notifications.error('Did not find any definitions.');
         } else if (foundDefs.definitions.length === 1) {
             this.tabs.current.openAtPosition(foundDefs.definitions[0].file, foundDefs.definitions[0].position);
         } else {
-            // todo: show overlay asking for which file
+            // show overlay asking for which file
+            this.setState(s => {
+                s.foundDefsDialog.show = true;
+                s.foundDefsDialog.data = foundDefs.definitions;
+                return s;
+            });
         }
     }
     onEditorTermSepMouseDown(e) {
@@ -414,6 +424,12 @@ export class App extends Component {
                     accept=${this.onDeleteDirAccept.bind(this)}
                     cancel=${() => { this.setState(st => { st.deleteDirDialog.show = false; return st; })}}
                 ></${ConfirmDeleteDirDialog}>
+            `}
+            ${this.state.foundDefsDialog.show && html`
+                <${FoundDefinitionsDialog} 
+                    definitions=${this.state.foundDefsDialog.data}
+                    hide=${() => { this.setState(s => { s.foundDefsDialog.show = false; return s; })}}
+                ></${FoundDefinitionsDialog}>
             `}
 
         </div>

@@ -64,6 +64,9 @@ export class Editor extends Component {
      * @param {*} pos 1-based absolute position
      */
     setCursorToPosition(pos) {
+        if (pos === null) {
+            return;
+        }
         if (this.loading || !this.editorInitialized) {
             setTimeout(() => { this.setCursorToPosition(pos) }, 100);
             return;
@@ -131,7 +134,7 @@ export class Editor extends Component {
             self.loading = false;
         })
         .catch(function(errMessage) {
-            // window.notifications.error(errMessage);
+            window.notifications.error(errMessage);
             self.setState({errMessage : errMessage}); 
             self.loading = false;
         });

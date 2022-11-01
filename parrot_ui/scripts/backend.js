@@ -85,9 +85,9 @@ window.__TAURI__.event.listen('set-prompt', (event) => {
         window.app.setPrompt(event.payload.Prompt);
     }
 });
-window.__TAURI__.event.listen('jump', (event) => {
+window.__TAURI__.event.listen('found-definitions', (event) => {
     console.log(event);
-    window.app.jumpTo(event.payload.ReturnFindDefinitionResult);
+    window.app.handleFoundDefinitions(event.payload.ReturnFindDefinitionResult);
 });
 window.__TAURI__.event.listen('notify-success', (event) => {
     window.notifications.show(event.payload.text);

@@ -376,7 +376,7 @@ fn handle_repl_commands(rec: crossbeam::channel::Receiver<SlynkAnswer>, window: 
                 emit = notify_error("Failed to compile.", &window);
             }
         } else if let SlynkAnswer::ReturnFindDefinitionResult { .. } = &m {
-            emit = window.emit("jump", m.clone());
+            emit = window.emit("found-definitions", m.clone());
         };
         emit.expect("Could not send event to main window");
     }
