@@ -261,7 +261,7 @@ impl Index {
                             file_match_count += 1;
                         }
                     }
-                    Ok(SourceFileSearchResult { results: res, too_many_results: count >= limit, match_count: count, file_match_count })
+                    Ok(SourceFileSearchResult { results: res.into_iter().sorted_by(|a, b| a.file_name.cmp(&b.file_name)).collect(), too_many_results: count >= limit, match_count: count, file_match_count })
                 },
                 Err(e) => {
                     Err(BackendError(format!("Invalid regex: {}", e)))
@@ -321,7 +321,7 @@ impl Index {
                 }
 
             }
-            Ok(SourceFileSearchResult { results: res, too_many_results: count >= limit, match_count: count, file_match_count })
+            Ok(SourceFileSearchResult { results: res.into_iter().sorted_by(|a, b| a.file_name.cmp(&b.file_name)).collect(), too_many_results: count >= limit, match_count: count, file_match_count })
         }
     }
 
