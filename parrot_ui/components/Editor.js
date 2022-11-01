@@ -95,13 +95,12 @@ export class Editor extends Component {
         }
         let lines = this.editor.getValue()
             .split('\n');
-        // if (line < 0 || line >= lines.length) {
-        //     notifications.error("Could not find that line in the file.");
-        //     return;
-        // }
-        notifications.show(`line:${line} col:${col}`);
+        if (line < 0 || line >= lines.length) {
+            notifications.error("Could not find that line in the file.");
+            return;
+        }
         this.editor.focus();
-        this.editor.setCursor({line: line, ch: 0})
+        this.editor.setCursor({line: line, ch: col})
     }
 
     /**
