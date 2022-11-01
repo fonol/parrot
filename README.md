@@ -82,8 +82,8 @@ Plus, it is untested on Linux and Mac (I will move to Linux for development at s
 - [x] basic UI
 - [x] option: regex mode
 - [x] option: match case
-- [ ] highlight matches
-- [ ] jump to source file location
+- [x] highlight matches
+- [x] jump to source file location
 
 ##### Editor:
 
