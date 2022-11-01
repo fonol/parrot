@@ -146,22 +146,33 @@ impl SlynkAnswer {
                     for def in sexp_children(sexp_parsed).unwrap() {
                         let label = sexp_list_nth_as_string(&def, 0).unwrap();
                         let location = sexp_list_nth(&def, 1).unwrap();
-                        let lfile = sexp_list_nth(&location, 1).unwrap();
-                        let file = sexp_list_nth_as_string(&lfile, 1).unwrap();
-                        let lpos = sexp_list_nth(&location, 2).unwrap();
-                        let position = sexp_list_nth_as_usize(&lpos, 1).unwrap();
-                        let lsnippet = sexp_list_nth(&location, 3).unwrap();
-                        let snippet = if sexp_is_nil(&lsnippet) {
-                            None
+                        let location_or_err = sexp_list_nth_as_string(&location, 0).unwrap();
+                        if location_or_err == ":error" {
+                            definitions.push(FoundDefinition {
+                                label, 
+                                file: None,
+                                position: None,
+                                snippet: None
+                            });
                         } else {
-                            Some(sexp_list_nth_as_string(&lsnippet, 1).unwrap())
-                        };
-                        definitions.push(FoundDefinition {
-                            label, 
-                            file,
-                            position,
-                            snippet
-                        });
+
+                            let lfile = sexp_list_nth(&location, 1).unwrap();
+                            let file = sexp_list_nth_as_string(&lfile, 1).ok();
+                            let lpos = sexp_list_nth(&location, 2).unwrap();
+                            let position = sexp_list_nth_as_usize(&lpos, 1).ok();
+                            let lsnippet = sexp_list_nth(&location, 3).unwrap();
+                            let snippet = if sexp_is_nil(&lsnippet) {
+                                None
+                            } else {
+                                Some(sexp_list_nth_as_string(&lsnippet, 1).unwrap())
+                            };
+                            definitions.push(FoundDefinition {
+                                label, 
+                                file,
+                                position,
+                                snippet
+                            });
+                        }
                     }
                 }
                 Self::ReturnFindDefinitionResult { continuation, definitions } 
@@ -341,8 +352,8 @@ pub struct CompilerNotes {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct FoundDefinition {
     pub label: String,
-    pub file: String,
-    pub position: usize,
+    pub file: Option<String>,
+    pub position: Option<usize>,
     pub snippet: Option<String>
 }
 
