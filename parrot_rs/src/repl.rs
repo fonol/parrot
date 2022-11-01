@@ -367,9 +367,11 @@ impl ChannelMethod {
             let to_write = WRITE_STRING.captures(answer)
             .unwrap()
             .get(1)
-            .unwrap()
-            .as_str();
-            return Self::WriteString(to_write.to_string())
+            .map(|m| m.as_str())
+            .map(unescape_quotes)
+            .unwrap();
+
+            return Self::WriteString(to_write)
         }
         if answer.starts_with("(:prompt ") {
             let cap = PROMPT.captures(answer)
