@@ -248,14 +248,18 @@ export class Editor extends Component {
         }
     }
     replCompileAndLoadFile() {
-        if (this.state.path && this.state.path.length) {
-            window.app.writeToREPL(`\x1b[38;5;246mLoading file \x1b[0m\x1b[48;5;28m ${getLeafNameWithExtension(this.state.path)} \x1b[0m`);
-            backend.replCompileAndLoadFile(this.state.path)
-                //.catch(notifications.error);
-        } else {
-            window.app.writeToREPL(`\x1b[38;5;246mLoading buffer \x1b[0m\x1b[48;5;28m Scratch \x1b[0m`);
-            backend.replEval(this.editor.getDoc().getValue());
-        }
+        let self = this;
+        this.save()
+            .then(() => {
+                if (self.state.path && self.state.path.length) {
+                    window.app.writeToREPL(`\x1b[38;5;246mLoading file \x1b[0m\x1b[48;5;28m ${getLeafNameWithExtension(self.state.path)} \x1b[0m`);
+                    backend.replCompileAndLoadFile(self.state.path)
+                } else {
+                    window.app.writeToREPL(`\x1b[38;5;246mLoading buffer \x1b[0m\x1b[48;5;28m Scratch \x1b[0m`);
+                    backend.replEval(self.editor.getDoc().getValue());
+                }
+
+            })
     }
     findDefintion() {
         let before = this.getTextBeforeCursor();
