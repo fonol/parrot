@@ -83,6 +83,7 @@ export class Editor extends Component {
         if (line !== -1) {
             this.editor.focus();
             this.editor.setCursor({line: line, ch: ch})
+            this.centerLine(line);
         }
     }
     /**
@@ -101,6 +102,7 @@ export class Editor extends Component {
         }
         this.editor.focus();
         this.editor.setCursor({line: line, ch: col})
+        this.centerLine(line);
     }
 
     /**
@@ -282,9 +284,15 @@ export class Editor extends Component {
             col: ch,
         }
     }
+    /**
+     * Vertically center the editor around the given line.
+     */
+    centerLine(lineIx) {
+        let top = this.editor.charCoords({line: lineIx, ch: 0}, "local").top; 
+        var heightHalf = this.editor.getScrollerElement().offsetHeight / 2; 
+        this.editor.scrollTo(null, top - heightHalf - 5); 
 
-
-
+    }
     onCodemirrorChange(cm, e) {
   
     }
