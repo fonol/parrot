@@ -7,6 +7,7 @@ export class Settings extends Component {
       this.state = { 
         cat: 1,
 
+        pathToSbcl: window.config.get('path_to_sbcl'),
         vimMode: window.config.get('vim_mode'),
         vimEsc: window.config.get('vim_esc'),
         shortcutCompileAndLoadFile: window.config.get('shortcut_compile_and_load_file'),
@@ -36,6 +37,7 @@ export class Settings extends Component {
     accept() {
         window.config.set('vim_mode', this.state.vimMode);
         window.config.set('vim_esc', this.state.vimEsc);
+        window.config.set('path_to_sbcl', this.state.pathToSbcl);
         window.config.set('shortcut_compile_and_load_file', this.state.shortcutCompileAndLoadFile);
         window.config.set('show_line_numbers', this.state.showLineNumbers);
         window.config.set('shortcut_compile_top_level', this.state.shortcutCompileToplevel);
@@ -63,6 +65,13 @@ export class Settings extends Component {
                             <div class="flex-1 overflow-auto" style="min-width: 500px">
                                 ${this.state.cat === 1 && html`
                                     <h3 class="pl-10">General</h3>
+                                    <div class="settings-item">
+                                        <div>Path to SBCL executable</div>
+                                        <div>e.g. C:/Users/me/SBCL/sbcl.exe</div>
+                                        <div>
+                                            <input type="text" value=${this.state.pathToSbcl} onChange=${e => this.setState({pathToSbcl: e.target.value})} style="min-width: 500px"/>
+                                        </div>
+                                    </div>
                                 
                                 `}
                                 ${this.state.cat === 2 && html`
