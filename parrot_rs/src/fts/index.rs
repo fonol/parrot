@@ -10,7 +10,7 @@ use regex::{Regex, RegexBuilder};
 
 use crate::file::{to_rel_path, is_lisp_file, is_fasl_file, normalize_path, path_to_node_name};
 use crate::error::BackendError;
-use crate::tree::get_all_lisp_file_contents_in_folder_as_iter;
+use crate::tree::{get_all_lisp_files_in_folder_as_iter};
 use crate::{ config, text::*, BackendResult };
 use super::models::*;
 
@@ -120,7 +120,7 @@ impl Index {
             // 4. delete the file in documents index
             let doc = self.documents.remove(&docs_id).unwrap();
             // let rel_path = to_rel_path(self.root_folder.as_ref().unwrap().as_str(), fpath.as_ref().to_str().unwrap());
-            self.doc_ids.retain(|k, v| v.clone().ne(&docs_id));
+            self.doc_ids.retain(|_, v| v.clone().ne(&docs_id));
             doc
     }
 
@@ -167,10 +167,10 @@ impl Index {
         self.documents.clear();
         self.doc_ids.clear();
 
-        let paths_and_contents = get_all_lisp_file_contents_in_folder_as_iter(&root_folder);
+        let paths_and_contents = get_all_lisp_files_in_folder_as_iter(&root_folder);
 
 
-        for (id, (full_path, _)) in paths_and_contents.enumerate() {
+        for (id, full_path) in paths_and_contents.enumerate() {
             let rel_path = to_rel_path(&root_folder, &full_path);
             let pth = Path::new(&rel_path);
             if pth.file_name().is_none() {
