@@ -8,6 +8,7 @@ export class Settings extends Component {
         cat: 1,
 
         pathToSbcl: window.config.get('path_to_sbcl'),
+        pathToCore: window.config.get('path_to_core'),
         vimMode: window.config.get('vim_mode'),
         vimEsc: window.config.get('vim_esc'),
         shortcutCompileAndLoadFile: window.config.get('shortcut_compile_and_load_file'),
@@ -38,6 +39,7 @@ export class Settings extends Component {
         window.config.set('vim_mode', this.state.vimMode);
         window.config.set('vim_esc', this.state.vimEsc);
         window.config.set('path_to_sbcl', this.state.pathToSbcl);
+        window.config.set('path_to_core', this.state.pathToCore);
         window.config.set('shortcut_compile_and_load_file', this.state.shortcutCompileAndLoadFile);
         window.config.set('show_line_numbers', this.state.showLineNumbers);
         window.config.set('shortcut_compile_top_level', this.state.shortcutCompileToplevel);
@@ -70,6 +72,13 @@ export class Settings extends Component {
                                         <div>e.g. C:/Users/me/SBCL/sbcl.exe</div>
                                         <div>
                                             <input type="text" value=${this.state.pathToSbcl} onChange=${e => this.setState({pathToSbcl: e.target.value})} style="min-width: 500px"/>
+                                        </div>
+                                    </div>
+                                    <div class="settings-item">
+                                        <div>Path to SBCL core file</div>
+                                        <div>e.g. C:/Users/me/SBCL/sbcl.core</div>
+                                        <div>
+                                            <input type="text" value=${this.state.pathToCore} onChange=${e => this.setState({pathToCore: e.target.value})} style="min-width: 500px"/>
                                         </div>
                                     </div>
                                 
