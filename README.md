@@ -104,7 +104,7 @@ Plus, it is untested on Linux and Mac (I will move to Linux for development at s
 - [ ] look up function definition
 - [ ] disassemble functions
 
-**lisp code evaluation / compilation**
+#### Lisp code evaluation / compilation
 
 - [x] compile and load file (C-c C-k in emacs)
  	- [ ] autosave before executing shortcut?
@@ -117,7 +117,7 @@ Plus, it is untested on Linux and Mac (I will move to Linux for development at s
 
 - [x] Settings dialog
 - [ ] setting: Slynk socket
-- [ ] setting: Path to SBCL
+- [x] setting: Path to SBCL
 - [ ] settting: .fasl file directory
 - [x] setting: toggle line numbers
 - [x] setting: enable/disable vim mode
@@ -129,11 +129,17 @@ Plus, it is untested on Linux and Mac (I will move to Linux for development at s
 - [ ] setting: editor font size
 - [ ] setting: editor font family
 - [ ] alternative themes
-	- [ ] would require some theming mechanism, e.g. using css vars everywhere
+	- [ ] would require some theming mechanism, e.g. more consistently using css vars everywhere
 
 #### Missing UI elements
 
-- [ ] would be cool: optional pane with defined functions / variables
+- [ ] would be cool: optional pane with defined functions / variables in current file
+- [ ] package & symbol browser
+- in menubar:
+	- [ ] close all tabs 
+	- [ ] undo
+	- [ ] "about" dialog
+
 
 #### Other IDE functions
 
@@ -143,7 +149,7 @@ Plus, it is untested on Linux and Mac (I will move to Linux for development at s
 - [ ] save lisp image
 - [ ] loading asdf systems
 - [ ] global search shortcut to find files
-- [ ] global search for file contents
+- [x] global search for file contents
 - [ ] global search and replace
 
 #### Far away 
