@@ -1,6 +1,6 @@
 import { html, Component } from '../preact-bundle.js'
 import { createRef } from '../preact-10.7.js';
-import { FileNameInput } from './common/FileNameInput.js'
+import { PathInput } from './common/PathInput.js'
 
 export class ConfigDiagnosticsDialog extends Component {
     constructor(props) {
@@ -58,6 +58,7 @@ export class ConfigDiagnosticsDialog extends Component {
         let self = this;
         window.config.write()
             .then(() => {
+                notifications.show('Updated configuration.');
                 self.props.accept();
             });
     }
@@ -71,7 +72,7 @@ export class ConfigDiagnosticsDialog extends Component {
         let d = this.state.diagnostics;
         return html`
             <div class="modal-bg">
-                    <div class="modal" >
+                    <div class="modal" style="min-width: 700px">
                         <div class="modal-header">
                             Please update your config!
                         </div>
@@ -82,19 +83,19 @@ export class ConfigDiagnosticsDialog extends Component {
                                 ${d.path_to_sbcl === 'ValueMissing' && html`
                                     <div>
                                         <div class="text-danger mt-10 mb-10">Value Missing</div>
-                                        <${FileNameInput} placeholder="Path" onChange=${(v) => this.setState({ path_to_sbcl: v })}><//${FileNameInput}>
+                                        <${PathInput} placeholder="Path" onChange=${(v) => this.setState({ path_to_sbcl: v })}><//${PathInput}>
                                     </div>
                                 `}
                                 ${typeof(d.path_to_sbcl)  === 'object' && 'ValueInvalid' in d.path_to_sbcl && html`
                                     <div>
                                         <div class="text-danger mt-10 mb-10">Value Invalid</div>
-                                        <${FileNameInput} placeholder="Path" value=${this.state.path_to_sbcl} onChange=${(v) => this.setState({ path_to_sbcl: v })}><//${FileNameInput}>
+                                        <${PathInput} placeholder="Path" value=${this.state.path_to_sbcl} onChange=${(v) => this.setState({ path_to_sbcl: v })}><//${PathInput}>
                                     </div>
                                 `}
                                 ${typeof(d.path_to_sbcl) === 'object' && 'Ok' in d.path_to_sbcl && html`
                                     <div>
                                         <div class="text-active mt-10 mb-10">Ok</div>
-                                        <${FileNameInput} placeholder="Path" value=${this.state.path_to_sbcl} onChange=${(v) => this.setState({ path_to_sbcl: v })}><//${FileNameInput}>
+                                        <${PathInput} placeholder="Path" value=${this.state.path_to_sbcl} onChange=${(v) => this.setState({ path_to_sbcl: v })}><//${PathInput}>
                                     </div>
                                 `}
                             </div>
@@ -104,19 +105,19 @@ export class ConfigDiagnosticsDialog extends Component {
                                 ${d.path_to_core === 'ValueMissing' && html`
                                     <div>
                                         <div class="text-danger mt-10 mb-10">Value Missing</div>
-                                        <${FileNameInput} placeholder="Path" onChange=${(v) => this.setState({ path_to_core: v })}><//${FileNameInput}>
+                                        <${PathInput} placeholder="Path" onChange=${(v) => this.setState({ path_to_core: v })}><//${PathInput}>
                                     </div>
                                 `}
                                 ${typeof(d.path_to_core)  === 'object' && 'ValueInvalid' in d.path_to_core && html`
                                     <div>
                                         <div class="text-danger mt-10 mb-10">Value Invalid</div>
-                                        <${FileNameInput} placeholder="Path" value=${this.state.path_to_core} onChange=${(v) => this.setState({ path_to_core: v })}><//${FileNameInput}>
+                                        <${PathInput} placeholder="Path" value=${this.state.path_to_core} onChange=${(v) => this.setState({ path_to_core: v })}><//${PathInput}>
                                     </div>
                                 `}
                                 ${typeof(d.path_to_core) === 'object' && 'Ok' in d.path_to_core && html`
                                     <div>
                                         <div class="text-active mt-10 mb-10">Ok</div>
-                                        <${FileNameInput} placeholder="Path" value=${this.state.path_to_core} onChange=${(v) => this.setState({ path_to_core: v })}><//${FileNameInput}>
+                                        <${PathInput} placeholder="Path" value=${this.state.path_to_core} onChange=${(v) => this.setState({ path_to_core: v })}><//${PathInput}>
                                     </div>
                                 `}
                             </div>
