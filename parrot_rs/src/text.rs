@@ -110,6 +110,15 @@ pub fn trim_quotes(mut text: String) -> String {
     }
     text
 }
+pub fn trim_parens(mut text: String) -> String {
+    if text.starts_with("(") {
+        text.remove(0);
+    }
+    if text.ends_with(")") {
+        text.pop();
+    }
+    text
+}
 pub fn unescape_quotes(text: &str) -> String {
     text.replace("\\\"", "\"")
 }
