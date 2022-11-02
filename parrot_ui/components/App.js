@@ -79,10 +79,11 @@ export class App extends Component {
                 if (diagnostics.ok) {
                     backend.initRepl()
                         .then(() => {
+                            self.setState({ initialLoadFinished: true });
                             console.log("after backend.initRepl.");
                         });
                 } else {
-                    self.setState({ configDiagnostics: diagnostics });
+                    self.setState({ configDiagnostics: diagnostics, initialLoadFinished: true });
                 }
             })
 
@@ -183,6 +184,7 @@ export class App extends Component {
     replFailedToInit(message) {
         console.log('App::replFailedToInit()')
         window.notifications.error(message);
+        this.setState({ initialLoadFinished: true });
         this.repl.current.writeError(message);
     }
     handleFoundDefinitions(foundDefs) {
@@ -221,10 +223,9 @@ export class App extends Component {
     onEditorTermResize(e) {
         let diff = e.pageX - this.hResizeStart;
         this.hResizeDebounce++;
-        if (this.hResizeDebounce > 1) {
+        if (this.hResizeDebounce % 2 === 0) {
             this.termCol.current.style.flex = `0 0 ${this.hResizeInitialTermWidth - diff}px`;
             this.repl.current.refresh(); 
-            this.hResizeDebounce = 0;
         }
     }
     onConfigDiagnosticsAccepted() {
