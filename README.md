@@ -93,10 +93,10 @@ Plus, it is untested on Linux and Mac (I will move to Linux for development at s
 - [x] basic syntax highlighting
 - [x] make shortcuts from settings work
 - [ ] autocomplete / suggestions
-- [ ] jump to definition
+- [x] jump to definition
 	- [x] jump to position
-	- [ ] handle multiple definitions found: show overlay/modal to pick one
-	- [ ] handle definition outside current source files (e.g. built-in functions)
+	- [x] handle multiple definitions found: show overlay/modal to pick one
+	- [x] handle definition outside current source files (e.g. built-in functions)
 - [ ] structured editing a la paredit
 - [ ] shortcut to jump between repl and source file
 - [ ] search and replace in file
@@ -144,7 +144,6 @@ Plus, it is untested on Linux and Mac (I will move to Linux for development at s
 	- [ ] retrieve information about symbol on click/hover 
 	- [ ] jump to symbol if possible
 	- [ ] refresh button
-
 - in menubar:
 	- [ ] close all tabs 
 	- [ ] undo
