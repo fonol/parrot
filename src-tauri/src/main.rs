@@ -50,6 +50,12 @@ struct Payload {
     text: String,
 }
 
+#[derive(Debug, Clone, Serialize)]
+struct ResolvePending {
+    continuation: usize,
+    data: String
+}
+
 fn main() {
     parrot_rs::create_app_directory_if_not_existing().unwrap();
     parrot_rs::config::create_config_if_not_existing();
@@ -89,6 +95,9 @@ fn main() {
             is_dir,
 
             search_source_files,
+
+            get_all_packages,
+            get_symbols_in_package,
 
             get_state,
             get_state_value,
@@ -303,6 +312,24 @@ fn search_source_files(query: &str, ignore_case: bool, is_regex: bool) -> Backen
 
 
 //
+// package browser
+//
+
+#[tauri::command]
+fn get_all_packages(continuation: usize) -> BackendResult<()>  {
+    REPL.lock()
+        .unwrap()
+        .list_all_packages(continuation)
+}
+#[tauri::command]
+fn get_symbols_in_package(package: String, vars: bool, functions: bool, classes: bool, macros: bool, continuation: usize) -> BackendResult<()>  {
+    REPL.lock()
+        .unwrap()
+        .get_symbols_in_package(package, vars, functions, classes, macros, continuation)
+}
+
+
+//
 // state
 //
 
@@ -377,6 +404,8 @@ fn handle_repl_commands(rec: crossbeam::channel::Receiver<SlynkAnswer>, window: 
             }
         } else if let SlynkAnswer::ReturnFindDefinitionResult { .. } = &m {
             emit = window.emit("found-definitions", m.clone());
+        } else if let SlynkAnswer::ResolvePending { continuation, data } = m {
+            emit = window.emit("resolve-pending", ResolvePending { continuation, data });
         };
         emit.expect("Could not send event to main window");
     }

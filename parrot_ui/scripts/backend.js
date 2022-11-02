@@ -4,7 +4,24 @@ if (typeof(window.__TAURI__) === 'undefined') {
 window.backend = new function() {
 
     var invoke = window.__TAURI__.invoke;
+    var pending = {};
 
+    var cont = () => {
+        let min = Math.ceil(0);
+        let max = Number.MAX_SAFE_INTEGER;
+        return Math.floor(Math.random() * (max - min) + min); 
+    }
+    this.resolvePending = (continuation, jsonAnswer) => {
+        pending[continuation](jsonAnswer);
+        delete pending[continuation];
+    }
+    var createPendingPromise = (continuation) => {
+     
+        let contPromise = new Promise(function(resolve, reject) {
+            pending[continuation] = resolve;
+        });
+        return contPromise;
+    }
 
 
     this.checkConfig = () => invoke('check_config');
@@ -53,6 +70,20 @@ window.backend = new function() {
     this.searchSourceFiles = (query, ignoreCase, isRegex) => invoke('search_source_files', { query: query, ignoreCase: ignoreCase, isRegex: isRegex });
 
     //
+    // package browser
+    //
+    this.getAllPackages = () => {
+        let continuation = cont();
+        invoke('get_all_packages', { continuation: continuation });
+        return createPendingPromise(continuation);
+    }
+    this.getSymbolsInPackage = (package, vars, functions, classes, macros) => {
+        let continuation = cont();
+        invoke('get_symbols_in_package', { package: package, vars: vars, functions: functions, classes: classes, macros: macros, continuation: continuation });
+        return createPendingPromise(continuation);
+    }
+
+    //
     // state
     //
     this.loadState = () => invoke('get_state');
@@ -71,6 +102,9 @@ window.backend = new function() {
     this.writeConfig = (config) => invoke('write_config', {config: config});
 
 };
+window.__TAURI__.event.listen('resolve-pending', (event) => {
+    backend.resolvePending(event.payload.continuation, event.payload.data);
+});
 window.__TAURI__.event.listen('term-write', (event) => {
     window.app.writeToREPL(event.payload.text);
 });

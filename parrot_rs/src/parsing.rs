@@ -1,6 +1,8 @@
+use itertools::Itertools;
+use regex::Regex;
 use sexp::{Sexp, Atom};
 
-use crate::{BackendError, BackendResult};
+use crate::{BackendError, BackendResult, text::{trim_parens, trim_quotes}};
 
 pub fn clean_and_parse_sexp(sexp_str: &str) -> BackendResult<Sexp> {
     let cleaned = sexp_str
@@ -97,5 +99,37 @@ pub fn sexp_usize_atom(sexp: &Sexp) -> BackendResult<usize> {
         Ok(*val as usize)
     } else {
         Err(BackendError("Failed to parse sexp.".to_string()))
+    }
+}
+
+
+///
+/// Parse the list given by (list-all-packages)
+/// 
+pub fn parse_package_list(list: &str) -> BackendResult<Vec<String>> {
+    let re = Regex::new("#<PACKAGE \"(?P<name>.+?)\">").unwrap();
+    let pnames = re.captures_iter(list)
+        .map(|c| c.name("name").unwrap().as_str().to_string())
+        .sorted()
+        .collect();
+    Ok(pnames)
+}
+///
+/// Parse the list given by (do-all-symbols)
+/// 
+pub fn parse_symbol_list(return_value: String) -> BackendResult<Vec<String>> {
+    let sexp = clean_and_parse_sexp(&return_value).unwrap();
+    let list = sexp_list_nth_as_string(&sexp, 0).unwrap();
+    if list.len() == 0 || list == "()" || list.eq_ignore_ascii_case("nil") {
+        Ok(vec![])
+    } else {
+        let re = Regex::new("(?:\n| +|\t)+").unwrap();
+        let list_cleaned = Regex::new("(^[(\"]+|[\")]+$)").unwrap()
+            .replace_all(&list, "").to_string();
+        Ok(re.split(&list_cleaned)
+            .map(|s| s.to_string())
+            .sorted()
+            .collect())
+
     }
 }

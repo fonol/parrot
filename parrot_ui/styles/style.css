@@ -210,7 +210,7 @@ code {
   word-break: break-all;
 }
 .link-like:hover {
-  color: #099ed4;
+  color: #2eb0df;
 }
 
 .overlay {
@@ -667,6 +667,13 @@ code {
   padding-left: 40px;
   padding-right: 35px;
 }
+.search-input-outer.small .search-input-icn {
+  height: 14px;
+  top: calc(50% - 7px);
+}
+.search-input-outer.small input {
+  font-size: 14px;
+}
 /* End SearchInput */
 /* Tabs */
 .tab-wrapper {
@@ -856,3 +863,21 @@ body.resizing  {
   background: hsl(33, 20%, 20%);
 }
 /* End SearchPane */
+/* PackageBrowserPane */
+.package-browser-section-header {
+  background-color: var(--pane-bg);
+  user-select: none;
+  padding: 10px 20px;
+  text-transform: uppercase;
+  color: var(--text-secondary-color);
+  font-weight: bold;
+  border-left: 1px solid #403b35;
+}
+.package-browser-section-body {
+  padding: 10px;
+  flex: 1 1 auto;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+/* End PackageBrowserPane */

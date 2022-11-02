@@ -13,6 +13,7 @@ import { RenameDialog } from './RenameDialog.js';
 import { ConfirmDeleteDirDialog } from './ConfirmDeleteDirDialog.js';
 import { SBCLOutputDialog } from './SBCLOutputDialog.js';
 import { SearchPane } from './SearchPane.js';
+import { PackageBrowserPane } from './PackageBrowserPane.js';
 import { FoundDefinitionsDialog } from './FoundDefinitionsDialog.js';
 
 export class App extends Component {
@@ -59,6 +60,7 @@ export class App extends Component {
         this.termCol = createRef();
         this.tabs = createRef();
         this.search = createRef();
+        this.packages = createRef();
         this.initTermColW = window.state.getOrDefault('term-col-width', 700);
 
         window.$bus.on('show-rename', this.showRenameDialog.bind(this));
@@ -262,7 +264,6 @@ export class App extends Component {
             })
     }
     deleteDir(path) {
-        let self = this;
         backend.deleteDir(path)
         .then(() => {
             window.notifications.show("Deleted directory.");
@@ -284,6 +285,9 @@ export class App extends Component {
             this.setState({ navActive: navCat });
             if (navCat === 'search') {
                 this.search.current.refresh();
+            }
+            if (navCat === 'packages') {
+                this.packages.current.refresh();
             }
         }
     }
@@ -324,6 +328,7 @@ export class App extends Component {
                 <div class="nav-pane">
                     <svg className=${this.state.navActive === 'tree' ? 'active': ''} onClick=${() => this.onNavClicked('tree')}  height="25" width="25" viewBox="0 0 512 512"><path d="M384 80H128c-26 0-43 14-48 40L48 272v112a48.14 48.14 0 0048 48h320a48.14 48.14 0 0048-48V272l-32-152c-5-27-23-40-48-40z" fill="none" stroke="currentColor" stroke-linejoin="round" stroke-width="32"/><path fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="32" d="M48 272h144M320 272h144M192 272a64 64 0 00128 0"/></svg>
                     <svg className=${this.state.navActive === 'search' ? 'active': ''} onClick=${() => this.onNavClicked('search')}  height="25" width="25" viewBox="0 0 512 512"><path d="M221.09 64a157.09 157.09 0 10157.09 157.09A157.1 157.1 0 00221.09 64z" fill="none" stroke="currentColor" stroke-miterlimit="10" stroke-width="32"/><path fill="none" stroke="currentColor" stroke-linecap="round" stroke-miterlimit="10" stroke-width="32" d="M338.29 338.29L448 448"/></svg>
+                    <svg className=${this.state.navActive === 'packages' ? 'active': ''} onClick=${() => this.onNavClicked('packages')}  height="25" width="25" viewBox="0 0 512 512"><path d="M448 341.37V170.61A32 32 0 00432.11 143l-152-88.46a47.94 47.94 0 00-48.24 0L79.89 143A32 32 0 0064 170.61v170.76A32 32 0 0079.89 369l152 88.46a48 48 0 0048.24 0l152-88.46A32 32 0 00448 341.37z" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="32"/><path fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="32" d="M69 153.99l187 110 187-110M256 463.99v-200"/></svg>
                 </div>
                 <div className=${'tree-pane ' + (this.state.navActive === 'tree' ? '': 'hidden')}>
                     ${this.state.tree !== null && html`
@@ -363,6 +368,10 @@ export class App extends Component {
                 <div className=${'tree-pane ' + (this.state.navActive === 'search' ? '': 'hidden')}>
                     <${SearchPane} ref=${this.search}>
                     </${SearchPane}>
+                </div>
+                <div className=${'tree-pane p-0 ' + (this.state.navActive === 'packages' ? '': 'hidden')} style="flex: 0 0 420px">
+                    <${PackageBrowserPane} ref=${this.packages}>
+                    </${PackageBrowserPane}>
                 </div>
                 <div class="flex-col flex-1 overflow-hidden" style="position: relative">
                     <${EditorTabs} ref=${this.tabs}>

@@ -97,6 +97,10 @@ pub enum SlynkAnswer {
         text: String,
         error: bool
     },
+    ResolvePending {
+        continuation: usize,
+        data: String
+    }
 
 }
 impl SlynkAnswer {
@@ -455,7 +459,16 @@ pub enum SlynkMessage {
         position: EditorPosition,
         filename: Option<String>,
         policy: Option<String> // ?
-    }
+    },
+    ListAllPackages(usize),
+    ListSymbolsInPackage{
+        package: String,
+        vars: bool,
+        macros: bool,
+        functions: bool,
+        classes: bool,
+        cont: usize
+    },
 }
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct EditorPosition {
@@ -469,7 +482,9 @@ pub enum ContinuationCallback {
     PrintReturnValue(PrintKind),
     Print(String, PrintKind),
     LoadFile,
-    JumpToDef
+    JumpToDef,
+    DisplayPackages(usize),
+    DisplaySymbolsInPackage(usize)
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -687,6 +702,10 @@ impl REPL {
                                         sender_tcp.send(SlynkAnswer::Notify { text: trim_quotes(message.clone()), error: !matches!(status, &ReturnStatus::Ok) }).expect("Could not send"),
                                     ContinuationCallback::JumpToDef => 
                                         sender_tcp.send(SlynkAnswer::Notify { text: value.clone(), error: !matches!(status, &ReturnStatus::Ok) }).expect("Could not send"),
+                                    ContinuationCallback::DisplayPackages(cont) => 
+                                        sender_tcp.send(SlynkAnswer::ResolvePending { continuation: *cont, data: serde_json::to_string(&parse_package_list(&value).unwrap()).unwrap() }).expect("Could not send"),
+                                    ContinuationCallback::DisplaySymbolsInPackage(cont) => 
+                                        sender_tcp.send(SlynkAnswer::ResolvePending { continuation: *cont, data: serde_json::to_string(&parse_symbol_list(value.clone()).unwrap()).unwrap() }).expect("Could not send"),
                                      _ => ()
                                 }
                             }
@@ -776,6 +795,25 @@ impl REPL {
                             let fname = nil_or_string(filename.to_owned());
                             let escaped = escape_quotes(string);
                             emacs_rex_thread(&format!("(slynk:compile-string-for-emacs \"{}\" \"{}\" '((:position {}) (:line {} {})) {} 'nil)", escaped, buffer, position.pos, position.line, position.col, fname),  &package_handle.lock().unwrap(), 1, &continuation)
+                        },
+                        SlynkMessage::ListAllPackages(cont) => {
+                            pending_handle_in.lock().unwrap().insert(continuation, ContinuationCallback::DisplayPackages(*cont));
+                            emacs_rex("(slynk:interactive-eval \"(list-all-packages)\")", &package_handle.lock().unwrap(), &continuation)
+                        },
+                        SlynkMessage::ListSymbolsInPackage{ package, vars, macros, functions, classes, cont} => {
+                            let lst_symbols = format!(r#"
+                            (write ((lambda (package)
+                                (let ((res (list)))
+                                    (do-all-symbols (sym package)
+                                        (when (and (fboundp sym)
+                                                (eql (symbol-package sym)
+                                                    (find-package package)))
+                                            (push sym res)))
+                                    res)) 
+                                '{}))
+                            "#, package);
+                            pending_handle_in.lock().unwrap().insert(continuation, ContinuationCallback::DisplaySymbolsInPackage(*cont));
+                            emacs_rex(&format!("(slynk:eval-and-grab-output \"{}\")", &lst_symbols), &package_handle.lock().unwrap(), &continuation)
                         }
                     };
                     let hex_prefix = format!("{:#08x}", message_body.chars().count())[2..].to_string();
@@ -888,6 +926,15 @@ impl REPL {
 
     pub fn invoke_nth_restart(&self, level: usize, n: usize, thread: usize) -> BackendResult<()> {
         self.slynk_repl_sender.send(SlynkMessage::InvokeNthRestart(level, n, thread))?;
+        Ok(())
+    }
+
+    pub fn list_all_packages(&self, continuation: usize) -> BackendResult<()> {
+        self.slynk_repl_sender.send(SlynkMessage::ListAllPackages(continuation))?;
+        Ok(())
+    }
+    pub fn get_symbols_in_package(&self, package: String, vars: bool, functions: bool, classes: bool, macros: bool, continuation: usize) -> BackendResult<()> {
+        self.slynk_repl_sender.send(SlynkMessage::ListSymbolsInPackage{ package, vars, functions, classes, macros, cont: continuation, })?;
         Ok(())
     }
 

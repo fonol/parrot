@@ -18,14 +18,14 @@
 }
 
 .text-danger {
-    color: var(--text-danger-color);
+    color: var(--text-danger-color) !important;
 }
 .text-secondary {
-    color: var(--text-secondary-color);
+    color: var(--text-secondary-color) !important;
 }
 .text-primary {
-    color: var(--text-primary-color);
+    color: var(--text-primary-color) !important;
 }
 .text-active {
-    color: var(--active-primary-color);
+    color: var(--active-primary-color) !important;
 }

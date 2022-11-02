@@ -37,3 +37,17 @@ pub enum FileTreeNodeType {
 
 pub type LispForm = String;
 pub type SymbolName = String;
+
+#[derive(Debug, Clone, Deserialize, Serialize)]
+pub enum SymbolType {
+    Macro,
+    Function,
+    Class,
+    Var
+}
+
+#[derive(Debug, Clone, Deserialize, Serialize)]
+pub struct Symbol {
+    pub name: String,
+    pub stype: SymbolType 
+}
