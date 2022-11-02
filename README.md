@@ -135,6 +135,15 @@ Plus, it is untested on Linux and Mac (I will move to Linux for development at s
 
 - [ ] would be cool: optional pane with defined functions / variables in current file
 - [ ] package & symbol browser
+	- [x] list all packages
+	- [x] list all symbols for package
+	- [ ] fetch symbol's type info in lisp lambda
+		- [ ] filter symbols by type (function/class/...)
+		- [ ] display symbol's type in UI
+	- [ ] retrieve information about symbol on click/hover 
+	- [ ] jump to symbol if possible
+	- [ ] refresh button
+
 - in menubar:
 	- [ ] close all tabs 
 	- [ ] undo
