@@ -32,7 +32,7 @@ Plus, it is untested on Linux and Mac (I will move to Linux for development at s
 
 <img src="/devlog/ui.jpg" width="1000">
 <img src="/devlog/search.jpg" width="1000">
-<img src="/devlog/package-browser.jpg" width="600">
+<img src="/devlog/package-browser.jpg" height="600">
 <img src="/devlog/load-file-debug-dialog.jpg" width="1000">
 <img src="/devlog/settings-dialog.jpg" width="600">
 
