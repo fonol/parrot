@@ -1,10 +1,12 @@
 import { html, Component } from '../preact-bundle.js'
 import { SearchInput } from './common/SearchInput.js'
+import { Checkbox } from './common/Checkbox.js'
 
 export class PackageBrowserPane extends Component {
     constructor(props) {
       super(props);
       this.state = { 
+        loadingSymbols: false,
         packageSearchInput: '',
         symbolSearchInput: '',
         activePackage: null,
@@ -38,20 +40,24 @@ export class PackageBrowserPane extends Component {
                 self.setState({ packages: JSON.parse(pjson) });
             });
     }
-    fetchSymbolsInPackage(packageName) {
+    fetchSymbolsInPackage() {
+        this.setState({ symbols: [] });
+        if (!this.state.activePackage) {
+            return;
+        }
+        this.setState({ loadingSymbols: true });
         let self = this;
-        backend.getSymbolsInPackage(packageName,
+        backend.getSymbolsInPackage(this.state.activePackage,
             this.state.incVars,
             this.state.incFunctions,
             this.state.incClasses,
             this.state.incMacros
         ).then(symbolList => {
-            self.setState({ symbols: JSON.parse(symbolList) });
+            self.setState({ symbols: JSON.parse(symbolList), loadingSymbols: false });
         })
     }
     onPackageClick(packageName) {
-        this.setState({ activePackage: packageName });
-        this.fetchSymbolsInPackage(packageName);
+        this.setState({ activePackage: packageName }, this.fetchSymbolsInPackage);
     }
     packagesFiltered() {
         if (this.state.packageSearchInput.trim() === '') {
@@ -64,6 +70,18 @@ export class PackageBrowserPane extends Component {
             return this.state.symbols;
         }
         return this.state.symbols.filter(p => p.toLowerCase().includes(this.state.symbolSearchInput.toLowerCase()));
+    }
+    toggleClasses() {
+        this.setState({ incClasses: !this.state.incClasses }, this.fetchSymbolsInPackage);
+    }
+    toggleFunctions() {
+        this.setState({ incFunctions: !this.state.incFunctions }, this.fetchSymbolsInPackage);
+    }
+    toggleVars() {
+        this.setState({ incVars: !this.state.incVars }, this.fetchSymbolsInPackage);
+    }
+    toggleMacros() {
+        this.setState({ incMacros: !this.state.incMacros }, this.fetchSymbolsInPackage);
     }
    
     render() {
@@ -96,7 +114,7 @@ export class PackageBrowserPane extends Component {
                 </div>
                 <div class="overflow-hidden flex-col" style="flex: 1">
                     ${hasPackageLoaded && symbolFilterActive && html`
-                        <div class="package-browser-section-header">${this.symbolsFiltered().length} symbols matching your filter in ${this.state.activePackage}</div>
+                        <div class="package-browser-section-header">${this.symbolsFiltered().length} symbols matching in ${this.state.activePackage}</div>
                     `}
                     ${hasPackageLoaded && !symbolFilterActive && html`
                         <div class="package-browser-section-header">${this.symbolsFiltered().length} symbols in ${this.state.activePackage}</div>
@@ -112,7 +130,33 @@ export class PackageBrowserPane extends Component {
                             placeholder="Filter Symbols"
                             value=${this.state.symbolSearchInput}>
                         </${SearchInput}>
-                        <div class="flex-1 mt-10 overflow-auto">
+                        <div class="flex-row text-secondary mt-5" style="justify-content: center">
+                            <div class="cb-with-label mr-5" onClick=${this.toggleFunctions.bind(this)}>
+                                <small>Functions</small>
+                                <${Checkbox} value=${this.state.incFunctions}></${Checkbox}>
+                            </div>
+                            <div class="cb-with-label mr-5" onClick=${this.toggleMacros.bind(this)}>
+                                <small>Macros</small>
+                                <${Checkbox} value=${this.state.incMacros} ></${Checkbox}>
+                            </div>
+                            <div class="cb-with-label mr-5" onClick=${this.toggleClasses.bind(this)}>
+                                <small>Classes</small>
+                                <${Checkbox} value=${this.state.incClasses} ></${Checkbox}>
+                            </div>
+                            <div class="cb-with-label mr-5" onClick=${this.toggleVars.bind(this)}>
+                                <small>Variables</small>
+                                <${Checkbox} value=${this.state.incVars} ></${Checkbox}>
+                            </div>
+                        </div>
+                        <div class="flex-1 mt-10 overflow-auto" style="position: relative">
+                            ${this.state.loadingSymbols && html`
+                                <div class="overlay">
+                                    <div class="lds-ripple">
+                                        <div></div>
+                                        <div></div>
+                                    </div>
+                                </div>
+                            `}
                             ${this.symbolsFiltered().map(s => html`
                                 <div class="link-like">${s}</div>
                             `)}

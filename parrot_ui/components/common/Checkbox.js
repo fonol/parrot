@@ -9,9 +9,6 @@ export class Checkbox extends Component {
         this.state = {
             checked: props.value
         };
-        if (typeof props.onChange !== 'function') {
-            console.error("Checkbox: Missing onChange prop.");
-        }
     }
     componentDidMount() { }
     componentDidUpdate(prevProps) {
@@ -25,7 +22,9 @@ export class Checkbox extends Component {
     toggle() {
         let self = this;
         this.setState({ checked: !this.state.checked }, () => {
-            self.props.onChange(self.state.checked);
+            if (self.props.onChange) {
+                self.props.onChange(self.state.checked);
+            }
         });
     }
     render() {

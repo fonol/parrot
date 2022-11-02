@@ -881,3 +881,20 @@ body.resizing  {
   flex-direction: column;
 }
 /* End PackageBrowserPane */
+/* Checkbox */
+.cb-with-label {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;
+  padding: 5px;
+  cursor: pointer;
+  user-select: none;
+}
+.cb-with-label > svg {
+  margin-left: 5px;
+}
+.cb-with-label:hover {
+  color: var(--active-secondary-color);
+}
+/* End Checkbox */

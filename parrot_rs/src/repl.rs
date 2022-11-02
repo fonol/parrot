@@ -805,13 +805,21 @@ impl REPL {
                             (write ((lambda (package)
                                 (let ((res (list)))
                                     (do-all-symbols (sym package)
-                                        (when (and (fboundp sym)
-                                                (eql (symbol-package sym)
-                                                    (find-package package)))
+                                        (when (and (or  (and {} (and (not (macro-function sym)) (fboundp sym)))
+                                                        (and {} (macro-function sym))
+                                                        (and {} (boundp sym))
+                                                        (and {} (find-class sym nil)))
+                                                    (eql (symbol-package sym)
+                                                        (find-package package)))
                                             (push sym res)))
                                     res)) 
                                 '{}))
-                            "#, package);
+                            "#, 
+                                bool_to_nil_or_t(functions), 
+                                bool_to_nil_or_t(macros), 
+                                bool_to_nil_or_t(vars), 
+                                bool_to_nil_or_t(classes), 
+                                package);
                             pending_handle_in.lock().unwrap().insert(continuation, ContinuationCallback::DisplaySymbolsInPackage(*cont));
                             emacs_rex(&format!("(slynk:eval-and-grab-output \"{}\")", &lst_symbols), &package_handle.lock().unwrap(), &continuation)
                         }
@@ -965,5 +973,12 @@ fn option_str(form: &str) -> Option<String> {
     match form {
         "nil" => None,
         v => Some(v.to_string())
+    }
+}
+
+fn bool_to_nil_or_t(val: &bool) -> String {
+    match val {
+        true => "T".to_string(),
+        false => "nil".to_string()
     }
 }
