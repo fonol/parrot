@@ -2,7 +2,7 @@ use std::collections::HashMap;
 use std::collections::hash_map::Entry;
 use std::net::TcpStream;
 use std::thread;
-use std::io::{BufRead, BufReader, Write, Read};
+use std::io::{BufRead, BufReader, Write, Read, ErrorKind};
 use std::process::{Command, Stdio, Child, ChildStdin};
 use std::sync::{Mutex, Arc, RwLock};
 use crossbeam::{unbounded, bounded, Sender, Receiver};
@@ -580,25 +580,6 @@ impl REPL {
         let arc_prompt = Arc::new(Mutex::new(String::from("CL-USER")));
 
         let mut init_err: Option<String> = None;
-
-        // 
-        // thread that listens to receiver_1 and sends the messages to the process' stdin
-        // let mut stdin = child.stdin.take().unwrap();
-        // thread::spawn(move || {
-        //     for line in receiver_1 {
-        //         if line.contains(STOP_SIG) {
-
-        //             println!("stdin writer: quit");
-        //             break;
-        //         }
-        //         println!("writing to stdin: {} {}", &line, line.len());
-        //         stdin.write_all(line.as_bytes()).unwrap();
-        //         if !line.ends_with("\n") {
-        //             stdin.write("\n".as_bytes()).unwrap();
-        //         }
-        //     }
-        // });
-
         let out_buf = Arc::new(Mutex::new(String::from("")));
         let sbcl_process_out = Arc::new(Mutex::new(vec![]));
         // 
@@ -643,8 +624,9 @@ impl REPL {
             connect_try += 1;
             tcp_write_try = TcpStream::connect(&socket);
         }
-        if tcp_write_try.is_err() {
-            init_err = Some("Failed to connect to Slynk server".to_string());
+
+        if let Err(e) = tcp_write_try {
+            init_err = Some(format!("Failed to connect to Slynk server.\n{}", &e.to_string()));
         } else {
             let mut tcp_write = tcp_write_try.expect(&format!("ABORT: Could not connect to Slynk server over socket {}.", &socket));
             let mut tcp_read = tcp_write.try_clone().expect("Could not clone stream");
