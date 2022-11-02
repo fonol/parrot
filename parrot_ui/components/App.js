@@ -223,7 +223,7 @@ export class App extends Component {
         this.hResizeDebounce++;
         if (this.hResizeDebounce > 1) {
             this.termCol.current.style.flex = `0 0 ${this.hResizeInitialTermWidth - diff}px`;
-            this.termFitAddon.fit();
+            this.repl.current.refresh(); 
             this.hResizeDebounce = 0;
         }
     }
@@ -345,8 +345,8 @@ export class App extends Component {
                         <div class="text-secondary flex-col flex-1 flex-center" style="align-items: center">
                             No folder selected yet.
                             ${this.state.lastOpenedFolders.length > 0 && html`
-                                <div mt-20>
-                                    <h4 class="ta-center">Last opened:</h4>
+                                <div class="mt-15">
+                                    <h4 class="ta-center mt-0 mb-10">Last opened:</h4>
                                     ${this.state.lastOpenedFolders
                         .filter((v, i, a) => a.indexOf(v) === i)
                         .map(f => html`

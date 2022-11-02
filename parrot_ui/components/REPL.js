@@ -29,6 +29,11 @@ export class REPL extends Component {
     }
     componentDidUpdate(prevProps) {
     }
+    refresh() {
+        if (this.termFitAddon) {
+            this.termFitAddon.fit();
+        }
+    }
     initXTerm() {
         let self = this;
         let baseTheme = {
