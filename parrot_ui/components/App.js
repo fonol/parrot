@@ -188,15 +188,20 @@ export class App extends Component {
         this.repl.current.writeError(message);
     }
     handleFoundDefinitions(foundDefs) {
-        if (!foundDefs.definitions.length) {
+        let defs = foundDefs.definitions;
+        if (!defs.length) {
             window.notifications.error('Did not find any definitions.');
-        } else if (foundDefs.definitions.length === 1) {
-            this.tabs.current.openAtPosition(foundDefs.definitions[0].file, foundDefs.definitions[0].position);
+        } else if (defs.length === 1) {
+            if (defs[0].error) {
+                notifications.error(defs[0].error);
+            } else {
+                this.tabs.current.openAtPosition(defs[0].file, defs[0].position);
+            }
         } else {
             // show overlay asking for which file
             this.setState(s => {
                 s.foundDefsDialog.show = true;
-                s.foundDefsDialog.data = foundDefs.definitions;
+                s.foundDefsDialog.data = defs;
                 return s;
             });
         }

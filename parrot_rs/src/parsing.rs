@@ -102,6 +102,20 @@ pub fn sexp_usize_atom(sexp: &Sexp) -> BackendResult<usize> {
     }
 }
 
+///
+/// Check if the given form is a return statement with a continuation
+/// 
+pub fn get_continuation(return_value: &str) -> Option<usize> {
+    if !return_value.starts_with("(:return ") {
+        return None
+    }
+    let re = Regex::new("^\\(:return (?:\n|\t|.)+ (?P<continuation>[0-9]+)\\)$").unwrap();
+    if let Some(cap) = re.captures(return_value) {
+        return cap.name("continuation").unwrap().as_str().parse::<usize>().ok();
+    }
+    None
+}
+
 
 ///
 /// Parse the list given by (list-all-packages)

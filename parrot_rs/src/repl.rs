@@ -24,8 +24,7 @@ pub const STOP_SIG: &str = "REPL~QUIT";
 lazy_static! {
     // parsing swank :return messages
     static ref CONTINUATION: Regex = Regex::new(r" ([0-9]+)\)$").unwrap();
-    static ref RETURN_VALUE: Regex = RegexBuilder::new("\\(:return \\(:(?:ok|abort) (?:(?P<value>(?:.|\n|\t)+)|(?P<nil>nil))\\) [0-9]+\\)$").multi_line(true).build().unwrap();
-    static ref FIND_DEFINITION_RESULT: Regex = RegexBuilder::new(" ?(?:\\((\\(\"(?P<label>(?:.|\n|\t)+?)\" \\(:location \\(:file \"(?P<file>.+)\"\\) \\(:position (?P<pos>[0-9]+)\\) (?:\\(:snippet \"(?P<snippet>(?:.|\n|\t)+)\"\\)|nil)\\)\\) ?)+\\)|(?P<nil>nil))$").multi_line(true).build().unwrap();
+    static ref RETURN_VALUE: Regex = RegexBuilder::new(" *\\(:return \\(:(?:ok|abort) (?:(?P<value>(?:.|\n|\t|\r)+)|(?P<nil>nil))\\) [0-9]+\\) *$").multi_line(true).build().unwrap();
     static ref WRITE_STRING: Regex = Regex::new("\\(:write-string \"((?:.|\n)+)\"( :repl-result)?\\)$").unwrap();
     static ref WRITE_VALUES: Regex = Regex::new("\\(:write-values (?:\\((\\(\"(?:.|\n)+\" [0-9]+ (?:\".+\"|nil)\\))+\\)|nil)\\)$").unwrap();
     static ref EVALUATION_ABORTED: Regex = Regex::new(" ?\\(:evaluation-aborted \"(?P<message>.+)\"\\)$").unwrap();
@@ -104,7 +103,7 @@ pub enum SlynkAnswer {
 
 }
 impl SlynkAnswer {
-    pub fn parse(m: &str) -> Self {
+    pub fn parse(m: &str, ccb: Option<&ContinuationCallback>) -> Self {
 
         if !m.starts_with("(:indentation-update ") {
             println!("Parsing: {}", m);
@@ -143,7 +142,7 @@ impl SlynkAnswer {
                     .as_str()
                     .to_string();
 
-            if FIND_DEFINITION_RESULT.is_match(&value) {
+            if matches!(ccb, Some(&ContinuationCallback::JumpToDef)) {
                 let sexp_parsed = clean_and_parse_sexp(&value).unwrap();
                 let mut definitions = vec![];
                 if !sexp_is_nil(&sexp_parsed) {
@@ -154,6 +153,7 @@ impl SlynkAnswer {
                         if location_or_err == ":error" {
                             definitions.push(FoundDefinition {
                                 label, 
+                                error: Some(sexp_list_nth_as_string(&location, 1).unwrap()),
                                 file: None,
                                 position: None,
                                 snippet: None
@@ -172,6 +172,7 @@ impl SlynkAnswer {
                             };
                             definitions.push(FoundDefinition {
                                 label, 
+                                error: None,
                                 file,
                                 position,
                                 snippet
@@ -356,6 +357,7 @@ pub struct CompilerNotes {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct FoundDefinition {
     pub label: String,
+    pub error: Option<String>,
     pub file: Option<String>,
     pub position: Option<usize>,
     pub snippet: Option<String>
@@ -530,7 +532,6 @@ pub struct REPL {
     pending: Arc<Mutex<HashMap<usize, ContinuationCallback>>>,
 
 
-
     //
     // REPL
     //
@@ -654,13 +655,18 @@ impl REPL {
                     let mut bbuf = vec![0 as u8; message_len as usize];
                     tcp_read.read_exact(&mut bbuf).expect("Could not read message body.");
                     let body = String::from_utf8(bbuf).unwrap();
-                    let sw = SlynkAnswer::parse(&body);
-
-                    // handle answer
-                    println!("Got SlynkAnswer: {:?}", &sw);
                     let rets = pending_handle_out
                         .lock()
                         .unwrap();
+                    let ccb = match get_continuation(&body) {
+                        Some(cont) => rets.get(&cont),
+                        None => None
+                    };
+                    let sw = SlynkAnswer::parse(&body, ccb);
+
+
+                    // handle answer
+                    println!("Got SlynkAnswer: {:?}", &sw);
                     match &sw {
                         SlynkAnswer::ChannelSend { method, .. } => {
                             if let ChannelMethod::Prompt { package, prompt, .. } = method {
@@ -714,7 +720,7 @@ impl REPL {
                     }
                     sender_tcp.send(sw).expect("Failed to send.");
 
-                }
+                };
                 println!("Thread reading incoming messages from Slynk stopped.");
 
             });
@@ -928,6 +934,13 @@ impl REPL {
         Ok(())
     }
 
+
+    fn get_continuation_callback(&self, return_value: &str) -> Option<ContinuationCallback> {
+        get_continuation(return_value)
+            .map(|c| self.pending.lock().unwrap().get(&c).map(|e| e.to_owned()))
+            .flatten()
+
+    }
 }
 
 fn emacs_return(form: &str, thread: usize, tag: &usize) -> String {
