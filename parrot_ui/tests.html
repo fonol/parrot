@@ -41,6 +41,7 @@
                     ['(defun prompt-read (prompt) (format *query-io* "~a: " prompt)',' (force-output *query-io*) (read-line *query-io*))', '(defun prompt-read (prompt) (format *query-io* "~a: " prompt) (force-output *query-io*) (read-line *query-io*))'],
                     ['(','defun prompt-read (prompt) (format *query-io* "~a: " prompt) (force-output *query-io*) (read-line *query-io*))', '(defun prompt-read (prompt) (format *query-io* "~a: " prompt) (force-output *query-io*) (read-line *query-io*))'],
                     ['(defun prompt-read (prompt) (format *query-io* "~a: " prompt) (force-output *query-io*) (read-line *query-io*)',')', '(defun prompt-read (prompt) (format *query-io* "~a: " prompt) (force-output *query-io*) (read-line *query-io*))'],
+                    ['(defun fn-with-comment (string) "This is a comment" (loop :with',' x := (y string) :for t := (funcall x) :while t :collect t))', '(defun fn-with-comment (string) "This is a comment" (loop :with x := (y string) :for t := (funcall x) :while t :collect t))'], 
                 ];
             for (let [before, after, expected] of testsGetSurroundingTopLevelExpr) {
                 let actual = getSurroundingTopLevelExpr(before, after);
