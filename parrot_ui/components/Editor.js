@@ -1,6 +1,12 @@
 import { html, Component } from '../preact-bundle.js';
 import { createRef } from '../preact-10.7.js';
-import { getSurroundingTopLevelExpr, getSymbolUnderOrBeforeCursor, getLeafNameWithExtension, getPrecedingExpr } from '../scripts/utils.js';
+import {
+    getSurroundingTopLevelExpr,
+    getSymbolUnderOrBeforeCursor,
+    getLeafNameWithExtension,
+    getPrecedingExpr,
+    padStartEnd
+} from '../scripts/utils.js';
 
 
 
@@ -230,19 +236,21 @@ export class Editor extends Component {
         let cursorPos = this.getCursorPosition();
         let topLevelExpr = getSurroundingTopLevelExpr(before, after, cursorPos.pos, cursorPos.line, cursorPos.col);
         if (topLevelExpr !== null) {
-            window.app.writeToREPL(`Compiling form \r\n\x1b[36;5;168m${topLevelExpr.text.replace(/\n/g, '\r\n')}`);
+
+            let lines = topLevelExpr.text.split(/\n/g).map(l => l.replace(/\t/g, '    '));
+            let lmaxLen = Math.max(Math.max(...lines.map(l => l.length)) + 2, 40);
+            window.app.writeToREPL(`\r\n${TCOLORS.BG_FORM}\x1b[38;5;8m${padStartEnd('[COMPILING]', lmaxLen, ' ')}\x1b[0m`);
+            window.app.writeToREPL(`${TCOLORS.BG_FORM}\x1b[38;5;240m${'~'.padEnd(lmaxLen, '~')}\x1b[0m`);
+            for (let l of lines) {
+                if (l.length < lmaxLen) {
+                    l = ` ${l} `.padEnd(lmaxLen, ' ');
+                }
+                window.app.writeToREPL(`${TCOLORS.BG_FORM}\x1b[38;5;232m${l}\x1b[0m`);
+            }
+            window.app.writeToREPL('\n');
             backend.replCompileForm(topLevelExpr.text, this.editingExistingFile ? this.state.path : 'Scratch', topLevelExpr.position, this.editingExistingFile ? this.state.path: null);
         } else {
             notifications.error('Found no top-level form around your cursor.');
-        }
-    }
-    evalTopLevelForm() {
-        let before = this.getTextBeforeCursor();
-        let after = this.getTextAfterCursor();
-        let topLevelExpr = getSurroundingTopLevelExpr(before, after);
-        if (topLevelExpr !== null) {
-            window.app.writeToREPL(`Evaluating form \r\n\x1b[36;5;168m${topLevelExpr.replace(/\n/g, '\r\n')}`);
-            backend.replEval(topLevelExpr);
         }
     }
     evalLastExprBeforeCursor() {

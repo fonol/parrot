@@ -200,9 +200,14 @@ export function getSurroundingTopLevelExpr(textBeforeCursor, textAfterCursor, cu
     }
     return null;
 }
-export function getLineColor(line) {
-    const C_WARN = '\u001b[38;5;167m';
-    const C_NON_USER = '\u001b[38;5;114m';
-    // const C_NON_USER = '\u001b[38;5;41m';
-    return C_NON_USER;
+
+export function padStartEnd(text, len, padChar) {
+    let remaining = len - text.length;
+    if (remaining <= 0) {
+        return text;
+    }
+    if (remaining % 2 === 0) {
+        return text.padStart(text.length + remaining / 2, padChar).padEnd(len, padChar);
+    }
+    return text.padStart(text.length + Math.trunc(remaining / 2.0)+1, padChar).padEnd(len, padChar);
 }

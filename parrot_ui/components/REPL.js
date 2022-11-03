@@ -1,6 +1,5 @@
 import { html, Component } from '../preact-bundle.js'
 import { createRef } from '../preact-10.7.js';
-import { getLineColor } from '../scripts/utils.js';
 
 //
 //  \x1b ESCAPE
@@ -8,6 +7,16 @@ import { getLineColor } from '../scripts/utils.js';
 //  
 //  \x1b[0m Reset color
 //
+window.TCOLORS = {
+    OUT_DEFAULT: '\x1b[38;5;2m',
+    PROMPT: '\x1b[38;5;180m',
+    ERROR: '\x1b[38;5;167m',
+    IMPORTANT: '\x1b[48;5;56m',
+    // BG_FORM: '\x1b[48;5;8m'
+    // BG_FORM: '\x1b[48;5;52m',
+    // BG_FORM: '\x1b[48;5;203m',
+    BG_FORM: '\x1b[48;5;180m',
+}
 
 export class REPL extends Component {
     constructor(props) {
@@ -144,13 +153,13 @@ export class REPL extends Component {
           
         this.term.prompt = function () {
             if (self.elevel > 0) {
-                self.term.write(`\r\n\x1b[38;5;167m[${self.elevel}]\x1b[0m \x1b[38;5;180m${self.termPrompt}\x1b[0m `);
+                self.term.write(`\r\n${TCOLORS.ERROR}[${self.elevel}]\x1b[0m ${TCOLORS.PROMPT}${self.termPrompt}\x1b[0m `);
             } else {
-                self.term.write(`\r\n\x1b[38;5;180m${self.termPrompt}\x1b[0m `);
+                self.term.write(`\r\n${TCOLORS.PROMPT}${self.termPrompt}\x1b[0m `);
             }
         };
         this.printWelcome();
-        this.term.write(`\x1b[38;5;180m${self.termPrompt}\x1b[0m `);
+        this.term.write(`${TCOLORS.PROMPT}${self.termPrompt}\x1b[0m `);
         this.termFitAddon = new FitAddon.FitAddon();
         this.term.loadAddon(this.termFitAddon);
         this.termFitAddon.fit();
@@ -171,8 +180,7 @@ export class REPL extends Component {
         let lines = text.split(/\n/g); 
         for (let i = 0; i < lines.length; i++) {
             let line = lines[i];
-            let color = getLineColor(line);
-            this.term.write((color||'') + line);
+            this.term.write(`${TCOLORS.OUT_DEFAULT}${line}`);
             if (i < lines.length - 1) {
                 this.term.write('\r\n');
             } 
@@ -211,12 +219,12 @@ export class REPL extends Component {
     }
     printWelcome() {
         this.printLogo();
-        this.term.write(`\r\n\x1b[48;5;56m Parrot REPL started. \r\n\n\x1b[0m`);
+        this.term.write(`\r\n${TCOLORS.IMPORTANT} Parrot REPL started. \r\n\n\x1b[0m`);
     }
     printRestart() {
         this.clearCurrentLine();
         this.printLogo();
-        this.term.write(`\r\n\x1b[2K\r\x1b[48;5;56m Parrot REPL restarted. \r\n\n\x1b[0m`);
+        this.term.write(`\r\n\x1b[2K\r${TCOLORS.IMPORTANT} Parrot REPL restarted. \r\n\n\x1b[0m`);
     }
     clearTerm() {
         this.setState({ termInput: '' });
