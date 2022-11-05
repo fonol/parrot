@@ -1,0 +1,54 @@
+# Booleans
+
+t
+nil
+T
+NIL
+
+==>
+
+Program(Boolean, Boolean, Boolean, Boolean)
+
+# Identifiers
+
+one
+Two_Three
+
+==>
+
+Program(Identifier, Identifier)
+
+# Numbers 
+
+1
+1/2
+-1
+-10
+
+==>
+
+Program(Number, Number, Number, Number)
+
+# Strings
+
+"hello"
+"one\"\\two"
+
+==>
+
+Program(String, String)
+
+# Applications
+
+(begin
+  (when t
+    (print (concat "hello" " " "world")))
+  (print "DONE"))
+
+==>
+
+Program(Application(
+  Identifier,
+  Application(Identifier, Boolean, Application(
+    Identifier, Application(Identifier, String, String, String)))
+  Application(Identifier, String)))

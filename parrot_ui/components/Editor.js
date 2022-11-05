@@ -57,10 +57,20 @@ export class Editor extends Component {
         if (!this.editor) {
             return null;
         }
-        return this.editor.getDoc().getValue();
+        return this.editor.state.doc.toString();
+    }
+    setValue(text) {
+        if (!this.editor) {
+            notifications.error('Cannot set value: editor not initialized yet.');
+            return;
+        }
+        this.setState({ content: text });
+        this.editor.dispatch({
+            changes: { from: 0, to: this.editor.state.doc.length, insert: text }
+        });
     }
     refresh() {
-        let currentValue = this.editor.getDoc().getValue();
+        let currentValue = this.getValue();
         this.editor = null;
         if (!this.editingFile()) {
             this.setState({ content: currentValue }, this.initEditor);
@@ -80,23 +90,9 @@ export class Editor extends Component {
             setTimeout(() => { this.setCursorToPosition(pos) }, 100);
             return;
         }
-        let lines = this.editor.getValue().split('\n');
-        let cpos = 0;
-        let line = -1;
-        let ch = -1;
-        for (let l = 0; l < lines.length; l++) {
-            if (lines[l].length + 1 + cpos >= pos) {
-                line = l;
-                ch =  pos - cpos-1;
-                break;
-            }
-            cpos += lines[l].length + 1;
-        }
-        if (line !== -1) {
-            this.editor.focus();
-            this.editor.setCursor({line: line, ch: ch})
-            this.centerLine(line);
-        }
+        this.editor.focus();
+        this.editor.dispatch({selection: {anchor: pos-1, head: pos-1}})
+        this.centerLine(pos);
     }
     /**
      * Focus the editor and set the cursor at the given position.
@@ -106,15 +102,16 @@ export class Editor extends Component {
             setTimeout(() => { this.setCursorToLineAndCol(line, col) }, 100);
             return;
         }
-        let lines = this.editor.getValue()
+        let lines = this.getValue()
             .split('\n');
         if (line < 0 || line >= lines.length) {
             notifications.error("Could not find that line in the file.");
             return;
         }
         this.editor.focus();
-        this.editor.setCursor({line: line, ch: col})
-        this.centerLine(line);
+        let pos = this.posToOffset({ line: line, ch: col });
+        this.editor.dispatch({selection: {anchor: pos, head: pos}})
+        this.centerLine(pos);
     }
 
     /**
@@ -153,35 +150,12 @@ export class Editor extends Component {
     initEditor() {
         console.log('initEditor');
 
-        let vimMode = window.config.get('vim_mode');
-        let vimAltEsc = window.config.get('vim_esc');
-        let showLineNumbers = window.config.get('show_line_numbers');
+        let editorConf = {
+            vimMode: window.config.get('vim_mode'),
+            vimAltEsc: window.config.get('vim_esc'),
+            showLineNumbers: window.config.get('show_line_numbers')
+        }; 
 
-        if (!this.editor) {
-            this.editor = window.CodeMirror.fromTextArea(this.editorTarget.current, {
-                mode:  'commonlisp',
-                styleActiveLine: true,
-                lineNumbers: showLineNumbers,
-                gutter: showLineNumbers,
-                indentUnit: 4,
-                indentWithTabs: false,
-                keyMap: vimMode ? 'vim': 'default'
-                // extraKeys: { Tab: 'indentMore', Enter: this.onEnter.bind(this), Up: this.onArrowUp.bind(this), Down: this.onArrowDown.bind(this) }
-            });
-            this.editor.refresh();
-            let self = this;
-            // self.editor.on("update", self.onCodemirrorUpdate.bind(self));
-            // self.editor.on("viewportChange", self.onCodemirrorUpdate.bind(self));
-            self.editor.on("cursorActivity", self.onCodeMirrorCursorActivity.bind(self));
-            // self.editor.on("change", self.onCodemirrorChange.bind(self));
-            self.editor.on("blur", self.onCodemirrorBlur.bind(self));
-        }
-        if (vimMode) {
-            CodeMirror.Vim.mapclear();
-            if (vimAltEsc && vimAltEsc !== '') {
-                CodeMirror.Vim.map(vimAltEsc, '<Esc>', 'insert');
-            }
-        }
         let map = {};
         let compileAndLoadFileShortCut = window.config.get('shortcut_compile_and_load_file');
         if (compileAndLoadFileShortCut) {
@@ -200,33 +174,71 @@ export class Editor extends Component {
             map[findDefinitionShortCut] = this.findDefintion.bind(this);
         }
 
-        this.editor.addKeyMap(map);
 
+        if (!this.editor) {
+            this.editorTarget.current.innerHTML = '';
+            this.editor = window.initEditor(this.editorTarget.current, editorConf, map, this.onCodemirrorUpdate.bind(this));
+            // this.editor = window.CodeMirror.fromTextArea(this.editorTarget.current, {
+            //     mode:  'commonlisp',
+            //     styleActiveLine: true,
+            //     lineNumbers: showLineNumbers,
+            //     gutter: showLineNumbers,
+            //     indentUnit: 4,
+            //     indentWithTabs: false,
+            //     keyMap: vimMode ? 'vim': 'default'
+            //     // extraKeys: { Tab: 'indentMore', Enter: this.onEnter.bind(this), Up: this.onArrowUp.bind(this), Down: this.onArrowDown.bind(this) }
+            // });
+            // this.editor.refresh();
+            // let self = this;
+            // self.editor.on("cursorActivity", self.onCodeMirrorCursorActivity.bind(self));
+            // self.editor.on("blur", self.onCodemirrorBlur.bind(self));
+        }
 
-        this.editor.getDoc().setValue(this.state.content);
+        // fill value
+        this.editor.dispatch({
+            changes: { from: 0, to: this.editor.state.doc.length, insert: this.state.content }
+        });
+
         this.editor.focus()
         this.editorInitialized = true;
     }
+    posToOffset({line, ch}) {
+        return this.editor.state.doc.line(line + 1).from + ch;
+    }
+    offsetToPos(offset) {
+        let line = this.editor.state.doc.lineAt(offset)
+        return { line: line.number - 1, ch: offset - line.from };
+    }
+    /** Current line index (starts at 1!) */
+    getCurrentLine() {
+        return this.editor.state.doc.lineAt(this.editor.state.selection.main.head).number;
+    }
+    getCurrentColumn() {
+        return this.offsetToPos(this.editor.state.selection.ranges[0].from).ch;
+    }
+    /** Text on line with the given index, indexes start at 1! */
+    getLineText(lineIx) {
+        return this.getValue().split('\n')[lineIx - 1];
+    }
     getTextBeforeCursor() {
-        let doc = this.editor.getDoc();
-        let line = doc.getCursor().line;
-        let ch = doc.getCursor().ch;
-        let text = doc.getLine(line).substr(0, ch);
-        while (line > 0) {
+        let line = this.getCurrentLine();
+        let ch = this.getCurrentColumn();
+        let text = this.getLineText(line).substr(0, ch);
+        while (line > 1) {
             line--;
-            text = doc.getLine(line)+'\n' + text;
+            text = this.getLineText(line)+'\n' + text;
         }
         return text;
     }
     getTextAfterCursor() {
-        let doc = this.editor.getDoc();
-        let line = doc.getCursor().line;
-        let ch = doc.getCursor().ch;
-        let text = doc.getLine(line);
+        let doc = this.editor.state.doc;
+        let line = this.getCurrentLine();
+        let ch = this.getCurrentColumn();
+        let text = this.getLineText(line); 
         text = text.substring(ch);
-        while (line < doc.size-1) {
+        while (line < doc.lines) {
             line++;
-            text += '\n'+ doc.getLine(line);
+            text += '\n'+ this.getLineText(line);
         }
         return text;
     }
@@ -255,12 +267,17 @@ export class Editor extends Component {
     }
     evalLastExprBeforeCursor() {
         let before = this.getTextBeforeCursor();
-        if (before) {
+        if (before && before.length) {
             let preceding = getPrecedingExpr(before);
             if (preceding !== null) {
                 backend.interactiveEvalForm(preceding);
+            } else {
+                notifications.error("Found no expression to evaluate that precedes your cursor.");
             }
+        } else {
+            notifications.error("Found no expression to evaluate that precedes your cursor.");
         }
+        return true;
     }
     replCompileAndLoadFile() {
         let self = this;
@@ -271,10 +288,11 @@ export class Editor extends Component {
                     backend.replCompileAndLoadFile(self.state.path)
                 } else {
                     window.app.writeToREPL(`\x1b[38;5;246mLoading buffer \x1b[0m\x1b[48;5;28m Scratch \x1b[0m`);
-                    backend.replEval(self.editor.getDoc().getValue());
+                    backend.replEval(self.getValue());
                 }
 
             })
+        return true;
     }
     findDefintion() {
         let before = this.getTextBeforeCursor();
@@ -285,17 +303,17 @@ export class Editor extends Component {
         } else {
             notifications.error("Could not find form under or before cursor.");
         }
+        return true;
     }
     getCursorPosition() {
-        let doc = this.editor.getDoc();
-        let line = doc.getCursor().line;
-        let ch = doc.getCursor().ch;
+        let line = this.getCurrentLine();
+        let ch = this.getCurrentColumn();
         let abs_c = ch;
 
         let lc = line;
-        while (lc > 0) {
+        while (lc > 1) {
             lc--;
-            abs_c += doc.getLine(lc).length + 1;
+            abs_c += this.getLineText(lc).length + 1;
         }
         return {
             pos: abs_c,
@@ -306,39 +324,38 @@ export class Editor extends Component {
     /**
      * Vertically center the editor around the given line.
      */
-    centerLine(lineIx) {
-        let top = this.editor.charCoords({line: lineIx, ch: 0}, "local").top; 
-        var heightHalf = this.editor.getScrollerElement().offsetHeight / 2; 
-        this.editor.scrollTo(null, top - heightHalf - 5); 
-
+    centerLine(pos) {
+        // todo: this feels like a hack
+        this.editor.scrollDOM.scrollTop = 0;
+        let coords = this.editor.coordsAtPos(pos);
+        let box = this.editor.scrollDOM.getBoundingClientRect();
+        let h = box.height;
+        this.editor.scrollDOM.scrollTop = coords.top - box.top - h / 2;
     }
-    onCodemirrorChange(cm, e) {
-  
-    }
-    onEnter(cm) {
-        return this.onNewLine(cm);
-    }
-    onNewLine(cm) {
-       
-    }   
-    onCodemirrorBlur() {
-        let hasChanges = this.originalValue !== this.editor.getDoc().getValue();
-        if (hasChanges && this.editingExistingFile) {
-            this.save();
-        }
-        if (hasChanges && this.props.onChange) {
-            console.log('Editor: onBlur(), hasChanges > onChange()');
-            this.props.onChange(this.state.path);
-        }
-    }
-    // code that needs to run after rerender
+    /* This is called anytime the editor's content changed */
     onCodemirrorUpdate() {
-      
+
+        if (this.timer) {
+            clearTimeout(this.timer);
+        }
+        this.timer = setTimeout(() => {
+            if (this.getValue() !== this.originalValue) {
+                if (this.editingExistingFile) {
+                    console.log('Editor: Saving...');
+                    this.save();
+                }
+                if (this.props.onChange) {
+                    this.props.onChange(this.state.path);
+                }
+            }
+        }, 1000);
     }
-    onCodeMirrorCursorActivity() {
-    }
+  
     async save() {
-        let content = this.editor.getDoc().getValue();
+        if (!this.editingExistingFile) {
+            return;
+        }
+        let content = this.getValue();
         if (content !== this.state.content) {
             this.originalValue = content;
             return window.backend.saveFileContent(this.state.path, content)
@@ -354,7 +371,7 @@ export class Editor extends Component {
                         <svg height="28" width="28" viewBox="0 0 512 512"><path fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="32" d="M160 368L32 256l128-112M352 368l128-112-128-112M192 288.1l64 63.9 64-63.9M256 160v176.03"/></svg>
                     </div>
                 </div>
-                <textarea ref=${this.editorTarget}></textarea>
+                <div class="h-100" ref=${this.editorTarget}></div>
             </div>`
     }
   }

@@ -87,28 +87,28 @@ export class Settings extends Component {
                                     <h3 class="pl-10">Editor</h3>
                                     <div class="settings-item">
                                         <div>Compile and load current file</div>
-                                        <div>Shortcut in CodeMirror syntax, e.g. "Shift-Ctrl-L", "Alt-L"</div>
+                                        <div>Shortcut in CodeMirror syntax, e.g. "Shift-Ctrl-l", "Alt-l"</div>
                                         <div>
                                             <input type="text" value=${this.state.shortcutCompileAndLoadFile} onChange=${e => this.setState({shortcutCompileAndLoadFile: e.target.value})}/>
                                         </div>
                                     </div>
                                     <div class="settings-item">
                                         <div>Compile top-level form</div>
-                                        <div>Shortcut in CodeMirror syntax, e.g. "Shift-Ctrl-C", "Alt-C"</div>
+                                        <div>Shortcut in CodeMirror syntax, e.g. "Shift-Ctrl-c", "Alt-c"</div>
                                         <div>
                                             <input type="text" value=${this.state.shortcutCompileToplevel} onChange=${e => this.setState({shortcutCompileToplevel: e.target.value})}/>
                                         </div>
                                     </div>
                                     <div class="settings-item">
                                         <div>Evaluate last expression before cursor</div>
-                                        <div>Shortcut in CodeMirror syntax, e.g. "Shift-Ctrl-E", "Alt-E"</div>
+                                        <div>Shortcut in CodeMirror syntax, e.g. "Shift-Ctrl-e", "Alt-e"</div>
                                         <div>
                                             <input type="text" value=${this.state.shortcutEvalLastExpression} onChange=${e => this.setState({shortcutEvalLastExpression: e.target.value})}/>
                                         </div>
                                     </div>
                                     <div class="settings-item">
                                         <div>Find definition</div>
-                                        <div>Find definition of symbol before or under the cursor.<br/>Shortcut in CodeMirror syntax, e.g. "Shift-Ctrl-D", "Alt-D"</div>
+                                        <div>Find definition of symbol before or under the cursor.<br/>Shortcut in CodeMirror syntax, e.g. "Shift-Ctrl-d", "Alt-d"</div>
                                         <div>
                                             <input type="text" value=${this.state.shortcutFindDefinition} onChange=${e => this.setState({shortcutFindDefinition: e.target.value})}/>
                                         </div>

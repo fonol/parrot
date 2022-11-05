@@ -2,3 +2,5 @@ node_modules/*
 target/*
 .vscode/*
 test_project/*
+parrot_ui/CodeMirror/node_modules/*
+parrot_ui/CodeMirror/cl-lang-mode/node_modules/*

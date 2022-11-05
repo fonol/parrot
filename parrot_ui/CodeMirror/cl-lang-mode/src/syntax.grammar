@@ -1,0 +1,38 @@
+@top Program { expression* }
+
+@skip { space | LineComment }
+
+expression {
+  Identifier |
+  String |
+  Keyword |
+  Boolean |
+  Number |
+  KeywordSymbol |
+  Quoted |
+  SpecialForm |
+  Application { "(" expression* ")" }
+}
+
+@tokens {
+  Identifier { $[a-zA-Z_\-0-9]+ }
+  KeywordSymbol { ":" $[a-zA-Z_\-0-9]+ }
+  Quoted { "'" $[a-zA-Z_\-0-9]+ }
+
+  String { '"' (!["\\] | "\\" _)* '"' }
+  Number { $[+\-]?$[0-9]+("/" $[0-9]+)? }
+
+  Boolean { "t" | "T" | "NIL" | "nil" }
+  Keyword { "defun" | "defmacro" | "deftype" | "defclass" | "defparameter" | "defvar" }
+  SpecialForm { "block"| "let*" | "return-from" | "catch" | "load-time-value" | "setq" | "eval-when" | "locally" | "symbol-macrolet" | "flet" | "macrolet" | "tagbody" | "function" | "multiple-value-call" | "the" | "go" | "multiple-value-prog1" | "throw" | "if" | "progn" | "unwind-protect" | "labels" | "progv" | "let" | "quote" }
+
+  LineComment { ";" ![\n]* }
+
+  space { $[ \t\n\r]+ }
+
+  "(" ")"
+
+   @precedence { Boolean, Keyword, Number, SpecialForm, Quoted, KeywordSymbol, Identifier }
+}
+
+@detectDelim

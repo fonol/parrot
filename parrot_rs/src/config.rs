@@ -60,10 +60,10 @@ pub fn create_config_if_not_existing() {
             slynk_socket: "127.0.0.1:4005".to_string(),
             vim_mode: false,
             vim_esc: None,
-            shortcut_compile_and_load_file: Some(String::from("Shift-Ctrl-L")),
-            shortcut_compile_top_level: Some(String::from("Shift-Ctrl-C")),
-            shortcut_eval_last_expression: Some(String::from("Shift-Ctrl-E")),
-            shortcut_find_definition: Some(String::from("Shift-Ctrl-D")),
+            shortcut_compile_and_load_file: Some(String::from("Shift-Ctrl-l")),
+            shortcut_compile_top_level: Some(String::from("Shift-Ctrl-c")),
+            shortcut_eval_last_expression: Some(String::from("Shift-Ctrl-e")),
+            shortcut_find_definition: Some(String::from("Shift-Ctrl-d")),
             show_line_numbers: false
         };
 

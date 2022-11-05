@@ -1,0 +1,49 @@
+/* CodeMirror */
+.cm-editor {
+  background-color: var(--editor-bg) !important;
+  background: var(--editor-bg) !important;
+  color: var(--text-primary-color) !important;
+  font-size: 19px;
+  font-family: 'Cascadia Code' !important;
+  height: 100% !important;
+}
+.cm-keyword {
+  color: #35c16d !important;
+}
+.cm-number {
+  color: #80caff !important;
+}
+.cm-atom {
+  color: #ffb01f !important;
+}
+.cm-string {
+  color: #2494c9 !important;
+}
+.cm-bracket {
+  color: #896f54 !important;
+}
+.cm-cursor {
+  border-color: rgb(90, 141, 204) !important;
+  border-width: 2px !important;
+}
+/* vim */
+.cm-fat-cursor {
+  background: rgb(90, 141, 204) !important;
+  outline: solid 1px rgb(90, 141, 204);
+}
+.cm-selectionBackground {
+  background-color: #0e4576 !important;
+  color: white !important;
+}
+.cm-gutter, .cm-activeLineGutter {
+  background-color: var(--editor-bg) !important;
+}
+
+.cm-gutters {
+  border-width: 0 !important
+}
+.cm-lineNumbers {
+  color: #584332 !important;
+}
+
+/* End CodeMirror */
