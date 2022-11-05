@@ -15,7 +15,7 @@ expression {
 }
 
 @tokens {
-  Identifier { $[a-zA-Z_\-0-9]+ }
+  Identifier { $[a-zA-Z_\-:0-9]+ }
   KeywordSymbol { ":" $[a-zA-Z_\-0-9]+ }
   Quoted { "'" $[a-zA-Z_\-0-9]+ }
 
