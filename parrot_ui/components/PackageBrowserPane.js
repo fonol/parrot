@@ -7,6 +7,7 @@ export class PackageBrowserPane extends Component {
       super(props);
       this.state = { 
         loadingSymbols: false,
+        loadingPackages: false,
         packageSearchInput: '',
         symbolSearchInput: '',
         activePackage: null,
@@ -35,10 +36,14 @@ export class PackageBrowserPane extends Component {
     }
     fetchPackages() {
         let self = this;
-        backend.getAllPackages()
-            .then((pjson) => {
-                self.setState({ packages: JSON.parse(pjson) });
-            });
+        this.setState({ loadingPackages: true, packages: [] }, () => {
+            backend.getAllPackages()
+                .then((pjson) => {
+                    let packageList = JSON.parse(pjson);
+                    let newActivePackage = packageList.includes(self.state.activePackage) ? self.state.activePackage : null;
+                    self.setState({ packages: JSON.parse(pjson), activePackage: newActivePackage, loadingPackages: false }, self.fetchSymbolsInPackage);
+                });
+        });
     }
     fetchSymbolsInPackage() {
         this.setState({ symbols: [] });
@@ -91,12 +96,21 @@ export class PackageBrowserPane extends Component {
         return html`
             <div class="flex-col flex-1 overflow-hidden">
                 <div class="overflow-hidden flex-col" style="flex: 1">
-                    ${packageFilterActive && html`
-                        <div class="package-browser-section-header">${this.packagesFiltered().length} packages matching your search</div>
-                    `}
-                    ${!packageFilterActive && html`
-                        <div class="package-browser-section-header">PACKAGES (${this.packagesFiltered().length})</div>
-                    `}
+                    <div class="package-browser-section-header flex-row flex-center flex-between">
+                        ${packageFilterActive && html`
+                            <div>
+                                ${this.packagesFiltered().length} packages matching your search 
+                            </div>
+                        `}
+                        ${!packageFilterActive && html`
+                            <div>
+                                PACKAGES (${this.packagesFiltered().length})
+                            </div>
+                        `}
+                        <div class="btn-icon icon-only" onClick=${this.refresh.bind(this)} title="Refresh">
+                            <svg viewBox="0 0 24 24" width="16" height="16"><path fill="none" d="M0 0h24v24H0z"/><path fill="currentColor" d="M18.537 19.567A9.961 9.961 0 0 1 12 22C6.477 22 2 17.523 2 12S6.477 2 12 2s10 4.477 10 10c0 2.136-.67 4.116-1.81 5.74L17 12h3a8 8 0 1 0-2.46 5.772l.997 1.795z"/></svg>
+                        </div>
+                    </div>
                     <div class="package-browser-section-body">
                         <${SearchInput}
                             small=${true}
@@ -105,7 +119,15 @@ export class PackageBrowserPane extends Component {
                             placeholder="Filter Packages"
                             value=${this.state.packageSearchInput}>
                         </${SearchInput}>
-                        <div class="flex-1 mt-10 overflow-auto">
+                        <div class="flex-1 mt-10 overflow-auto" style="position: relative">
+                            ${this.state.loadingPackages && html`
+                                <div class="overlay">
+                                    <div class="lds-ripple">
+                                        <div></div>
+                                        <div></div>
+                                    </div>
+                                </div>
+                            `}
                             ${this.packagesFiltered().map(p => html`
                                 <div onClick=${() => this.onPackageClick(p)} className=${'link-like' + (this.state.activePackage === p ? ' text-active': '')}>${p}</div>
                             `)}
