@@ -106,8 +106,8 @@ export function getSlurpBackwardTarget(textBeforeCursor, textAfterCursor, cursor
 
             if (finished) {
                 return {
-                    slurpTargetStart: cursorPos - (textBeforeCursor.length - startIx),
-                    slurpTargetEnd: cursorPos - (textBeforeCursor.length - startIx) + toSlurp.length,
+                    slurpTargetStart: cursorPos - (textBeforeCursor.length - startIx) - toSlurp.length + 1,
+                    slurpTargetEnd: cursorPos - (textBeforeCursor.length - startIx) + 1,
                     slurpDest: cursorPos - (textBeforeCursor.length - lastSlurpDest) + 1
                 };
             }

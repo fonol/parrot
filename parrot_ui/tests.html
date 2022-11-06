@@ -232,6 +232,7 @@
                 [' ', ' ', 1, null],
                 ['(a (', 'b c))', 4, { slurpTargetStart: 1, slurpTargetEnd: 2, slurpDest: 4}],
                 ['(a (e', 'b c))', 5, { slurpTargetStart: 1, slurpTargetEnd: 2, slurpDest: 4}],
+                ['(a b (c d) (', 'e f))', 12, { slurpTargetStart: 5, slurpTargetEnd: 10, slurpDest: 12}],
 
             ];
             for (let [arg1, arg2, arg3, expected] of testsGetSlurpBackwardTarget) {
