@@ -58,13 +58,25 @@ export function countClosedAndOpenedParentheses(text) {
     }
     let opened = 0;
     let closed = 0;
+    let insideString = false;
+    let cBefore = '';
     for (var i = 0; i < text.length; i++) {
         let c = text.charAt(i);
-        if (c === ')') {
-            closed++;
-        } else if (c === '(') {
-            opened++;
+        if (c === '"') {
+            if (insideString && cBefore !== '\\') {
+                insideString = false;
+            } else if (!insideString && cBefore !== '\\') {
+                insideString = true;
+            }
         }
+        if (!insideString) {
+            if (c === ')') {
+                closed++;
+            } else if (c === '(') {
+                opened++;
+            }
+        }
+        cBefore = c;
     }
     return { closed: closed, opened: opened };
 }
