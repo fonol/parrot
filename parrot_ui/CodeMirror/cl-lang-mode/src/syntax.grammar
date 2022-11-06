@@ -12,6 +12,8 @@ expression {
   Quoted |
   SpecialForm |
   Application { "(" expression* ")" }
+  KeywordApplication { "(" Keyword expression* ")" }
+  DefiningApplication { "(" Def expression* ")" }
 }
 
 @tokens {
@@ -23,7 +25,8 @@ expression {
   Number { $[+\-]?$[0-9]+("/" $[0-9]+)? }
 
   Boolean { "t" | "T" | "NIL" | "nil" }
-  Keyword { "defun" | "defmacro" | "deftype" | "defclass" | "defparameter" | "defvar" }
+  Def { "def" $[a-zA-Z_\-:0-9]+ }
+  Keyword { "def" $[a-zA-Z_\-:0-9]+ }
   SpecialForm { "block"| "let*" | "return-from" | "catch" | "load-time-value" | "setq" | "eval-when" | "locally" | "symbol-macrolet" | "flet" | "macrolet" | "tagbody" | "function" | "multiple-value-call" | "the" | "go" | "multiple-value-prog1" | "throw" | "if" | "progn" | "unwind-protect" | "labels" | "progv" | "let" | "quote" }
 
   LineComment { ";" ![\n]* }
