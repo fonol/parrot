@@ -2,7 +2,7 @@ use crossbeam::SendError;
 use serde::{Deserialize, Serialize};
 use std::fmt::Display;
 
-use crate::repl::SlynkMessage;
+use crate::models::SlynkMessage;
 
 
 #[derive(Serialize, Deserialize, Debug)]

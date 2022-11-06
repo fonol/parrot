@@ -3,7 +3,9 @@
     windows_subsystem = "windows"
 )]
 
-use parrot_rs::{self, BackendResult, repl::{STOP_SIG, SlynkAnswer, ChannelMethod, EditorPosition}, config::Config, ConfigDiagnostics, fts::{index::Index, models::{FileContentSearchResultGroup, SourceFileSearchResult}}};
+use parrot_rs::{self, BackendResult, config::Config, ConfigDiagnostics, fts::{index::Index}};
+use parrot_rs::models::{SlynkAnswer, ChannelMethod, EditorPosition};
+use parrot_rs::fts::models::SourceFileSearchResult;
 use serde::Serialize;
 use tauri::{Window};
 use std::{sync::{Mutex}, collections::HashMap, path::Path};

@@ -1,10 +1,12 @@
 use std::{assert};
 
-use parrot_rs::{self, repl::{SlynkAnswer, ChannelMethod, ContinuationCallback}};
+use parrot_rs::models::*;
+use parrot_rs::parsing::parse_slynk_answer;
+use parrot_rs::{self};
 
 #[test]
 fn parse_compilation_result_failed() {
-    let parsed = SlynkAnswer::parse(r#"(:return (:ok (:compilation-result ((:message "undefined variable: COMMON-LISP-USER::X" :severity :warning :location (:location (:file "path/to/test.lisp") (:position 42) nil) :references nil)) nil 0.0061610001139342785 t "path/to/test.fasl")) 10)"#, 
+    let parsed = parse_slynk_answer(r#"(:return (:ok (:compilation-result ((:message "undefined variable: COMMON-LISP-USER::X" :severity :warning :location (:location (:file "path/to/test.lisp") (:position 42) nil) :references nil)) nil 0.0061610001139342785 t "path/to/test.fasl")) 10)"#, 
     None
 );
     assert!(matches!(parsed, SlynkAnswer::ReturnCompilationResult { .. }));
@@ -17,7 +19,7 @@ fn parse_compilation_result_failed() {
 }
 #[test]
 fn parse_find_definition_result() {
-    let parsed = SlynkAnswer::parse(r#"(:return (:ok (("(DEFUN POST)" (:location (:file "path/to/testing.lisp") (:position 41) (:snippet "(defun post ()       
+    let parsed = parse_slynk_answer(r#"(:return (:ok (("(DEFUN POST)" (:location (:file "path/to/testing.lisp") (:position 41) (:snippet "(defun post ()       
     (format t \"post\"))
 "))))) 3)"#, Some(&ContinuationCallback::JumpToDef));
     assert!(matches!(parsed, SlynkAnswer::ReturnFindDefinitionResult { .. }));
@@ -35,7 +37,7 @@ fn parse_find_definition_result() {
 //
 #[test]
 fn parse_find_definition_result_nil() {
-    let parsed = SlynkAnswer::parse(r#"(:return (:ok (("(DEFCONSTANT NIL)" (:error "Error: DEFINITION-SOURCE of constant NIL did not contain meaningful information.")))) 13)"#, Some(&ContinuationCallback::JumpToDef));
+    let parsed = parse_slynk_answer(r#"(:return (:ok (("(DEFCONSTANT NIL)" (:error "Error: DEFINITION-SOURCE of constant NIL did not contain meaningful information.")))) 13)"#, Some(&ContinuationCallback::JumpToDef));
     assert!(matches!(parsed, SlynkAnswer::ReturnFindDefinitionResult { .. }));
 
     if let SlynkAnswer::ReturnFindDefinitionResult {  definitions, .. } = parsed {
@@ -52,7 +54,7 @@ fn parse_find_definition_result_nil() {
 //
 #[test]
 fn parse_find_definition_result_multiple() {
-    let parsed = SlynkAnswer::parse(r#"(:return (:ok (("(DEFUN MAKE-LIST)" (:location (:file "C:/sbcl-64/src/code/list.lisp") (:position 1) (:snippet "(defun MAKE-LIST "))) ("(:DEFINE-SOURCE-TRANSFORM MAKE-LIST)" (:location (:file "C:/sbcl-64/src/compiler/srctran.lisp") (:position 1) nil)) ("(DECLAIM MAKE-LIST
+    let parsed = parse_slynk_answer(r#"(:return (:ok (("(DEFUN MAKE-LIST)" (:location (:file "C:/sbcl-64/src/code/list.lisp") (:position 1) (:snippet "(defun MAKE-LIST "))) ("(:DEFINE-SOURCE-TRANSFORM MAKE-LIST)" (:location (:file "C:/sbcl-64/src/compiler/srctran.lisp") (:position 1) nil)) ("(DECLAIM MAKE-LIST
         SB-C:DEFKNOWN)" (:location (:file "C:/sbcl-64/src/compiler/fndb.lisp") (:position 1) nil)))) 3)"#, Some(&ContinuationCallback::JumpToDef));
     assert!(matches!(parsed, SlynkAnswer::ReturnFindDefinitionResult { .. }));
     if let SlynkAnswer::ReturnFindDefinitionResult {  definitions, .. } = parsed {
@@ -73,7 +75,7 @@ fn parse_find_definition_result_multiple() {
 /// This ist the returned value from slynk when evaluating (list-all-packages) in the REPL
 #[test]
 fn parse_write_values_list_all_packages() {
- let parsed = SlynkAnswer::parse(r#"(:channel-send 1 (:write-values (("(#<PACKAGE \"SLYNK-MATCH\"> #<PACKAGE \"SLYNK-TRACE-DIALOG\">         #<PACKAGE \"SB-ALIEN-INTERNALS\"> #<PACKAGE \"COMMON-LISP-USER\"> #<PACKAGE \"SB-DEBUG\"> #<PACKAGE \"SLYNK-BACKEND\"> #<PACKAGE \"SLYNK-SOURCE-PATH-PARSER\"> #<PACKAGE \"SLYNK-APROPOS\">
+    let parsed = parse_slynk_answer(r#"(:channel-send 1 (:write-values (("(#<PACKAGE \"SLYNK-MATCH\"> #<PACKAGE \"SLYNK-TRACE-DIALOG\">         #<PACKAGE \"SB-ALIEN-INTERNALS\"> #<PACKAGE \"COMMON-LISP-USER\"> #<PACKAGE \"SB-DEBUG\"> #<PACKAGE \"SLYNK-BACKEND\"> #<PACKAGE \"SLYNK-SOURCE-PATH-PARSER\"> #<PACKAGE \"SLYNK-APROPOS\">
  #<PACKAGE \"COMMON-LISP\"> #<PACKAGE \"SB-DI\"> #<PACKAGE \"SB-CLTL2\">
  #<PACKAGE \"SB-WALKER\"> #<PACKAGE \"SB-PCL\"> #<PACKAGE \"SB-APROF\">
  #<PACKAGE \"SB-IMPL\"> #<PACKAGE \"SB-VM\"> #<PACKAGE \"SB-FORMAT\">
@@ -91,10 +93,10 @@ fn parse_write_values_list_all_packages() {
  #<PACKAGE \"KEYWORD\"> #<PACKAGE \"SB-UNIX\"> #<PACKAGE \"SB-BIGNUM\">
  #<PACKAGE \"SLYNK-SBCL\"> #<PACKAGE \"SB-BROTHERTREE\">
  #<PACKAGE \"SLYNK-COMPLETION-LOCAL-NICKNAMES-TEST\"> #<PACKAGE \"SLYNK-MREPL\"> #<PACKAGE \"SB-REGALLOC\"> #<PACKAGE \"SB-ALIEN\">)" 0 nil))))"#, Some(&ContinuationCallback::DisplayPackages(0)));
-assert!(matches!(parsed, SlynkAnswer::ChannelSend { .. }));
-if let SlynkAnswer::ChannelSend {  method, .. } = parsed {
-    assert!(matches!(method, ChannelMethod::WriteValues(..)));
-} else {
-    panic!("Wrong enum variant")
-}
+    assert!(matches!(parsed, SlynkAnswer::ChannelSend { .. }));
+    if let SlynkAnswer::ChannelSend {  method, .. } = parsed {
+        assert!(matches!(method, ChannelMethod::WriteValues(..)));
+    } else {
+        panic!("Wrong enum variant")
+    }
 }
