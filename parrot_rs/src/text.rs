@@ -78,16 +78,26 @@ pub fn get_line_from_byte_offset(text: &str, byte_offset: usize) -> (usize, usiz
     panic!("This should not happen: byte_offset should always be inside the text.");
 }
 pub fn get_surrounding_context(text: &str, char_pos: usize, window_size: usize) -> (String, usize) {
-    let start_ix = if char_pos <= window_size {
+    let mut start_ix = if char_pos <= window_size {
         0
     } else {
         char_pos - window_size
     };
-    let end_ix = if char_pos + window_size >= text.chars().count() {
+    let mut end_ix = if char_pos + window_size >= text.chars().count() {
         text.chars().count()
     } else {
         char_pos + window_size
     };
+    // unused number of characters at the left side of the window
+    let start_off: i32 = (window_size as i32 - char_pos as i32).max(0);
+    // unused number of characters at the right side of the window
+    let end_off: i32 = (char_pos as i32 + window_size as i32 - text.chars().count() as i32).max(0);
+    // if on the left side, there are unused chars, we can increase the window on the right side
+    if start_off > 0 && end_off == 0 {
+        end_ix = (end_ix + start_off as usize).min(text.chars().count());
+    } else if end_off > 0 && start_off == 0 {
+        start_ix = (start_ix as i32 - end_off).max(0) as usize;
+    }
     (text.chars()
         .skip(start_ix)
         .take(end_ix - start_ix)

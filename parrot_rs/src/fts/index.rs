@@ -229,7 +229,7 @@ impl Index {
                             for m in re.find_iter(content) {
                                 let pos = m.start();
                                 let (line_ix, line_pos, line) = get_line_from_byte_offset(&content, pos);
-                                let (ctx, ctx_offset) = get_surrounding_context(&line, line_pos, 20);
+                                let (ctx, ctx_offset) = get_surrounding_context(&line, line_pos, 22);
 
                                 found.push(FileContentLineResult { 
                                       line: line_ix,
@@ -288,7 +288,7 @@ impl Index {
                     for mi in content.match_indices(&q) {
                         let byte_offset = mi.0;
                         let (line_ix, line_pos, line) = get_line_from_byte_offset(doc_content, byte_offset);
-                        let (ctx, ctx_offset) = get_surrounding_context(&line, line_pos, 20);
+                        let (ctx, ctx_offset) = get_surrounding_context(&line, line_pos, 22);
                         found.push(FileContentLineResult { 
                           line: line_ix,
                           context: ctx,
