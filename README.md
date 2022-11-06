@@ -98,6 +98,9 @@ Plus, it is untested on Linux and Mac (I will move to Linux for development at s
 	- [x] handle multiple definitions found: show overlay/modal to pick one
 	- [x] handle definition outside current source files (e.g. built-in functions)
 - [ ] structured editing a la paredit
+	- [x] slurp forward / backward
+	- [ ] barf forward / backward
+
 - [ ] shortcut to jump between repl and source file
 - [ ] search and replace in file
 - [ ] search in file
@@ -143,7 +146,7 @@ Plus, it is untested on Linux and Mac (I will move to Linux for development at s
 		- [ ] display symbol's type in UI
 	- [ ] retrieve information about symbol on click/hover 
 	- [ ] jump to symbol if possible
-	- [ ] refresh button
+	- [x] refresh button
 - in menubar:
 	- [ ] close all tabs 
 	- [ ] undo
