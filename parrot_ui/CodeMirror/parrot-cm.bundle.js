@@ -27490,6 +27490,11 @@
      let km = [];
      if (keyMap && Object.keys(keyMap).length) {
        for (let [key, cb] of Object.entries(keyMap)) {
+         let alreadyRegistered = defaultKeymap.findIndex(k => k.key === key || k.mac === key);
+         if (alreadyRegistered >= 0) {
+           console.log('Overwrite ' + defaultKeymap[alreadyRegistered].key + ' shortcut');
+           defaultKeymap.splice(alreadyRegistered, 1);
+         }
          km.push({
            key: key,
            run: cb
@@ -27497,7 +27502,7 @@
        }
      }
      let keymaps = [
-       ...defaultKeymap,
+       // ...defaultKeymap,
        ...km
        // ...closeBracketsKeymap,
        // ...historyKeymap,

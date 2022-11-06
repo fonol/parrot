@@ -17,6 +17,8 @@ pub struct Config {
     pub shortcut_compile_top_level: Option<String>,
     pub shortcut_eval_last_expression: Option<String>,
     pub shortcut_find_definition: Option<String>,
+    pub shortcut_slurp_forward: Option<String>,
+    pub shortcut_slurp_backward: Option<String>,
     pub show_line_numbers: bool
 }
 
@@ -64,6 +66,8 @@ pub fn create_config_if_not_existing() {
             shortcut_compile_top_level: Some(String::from("Shift-Ctrl-c")),
             shortcut_eval_last_expression: Some(String::from("Shift-Ctrl-e")),
             shortcut_find_definition: Some(String::from("Shift-Ctrl-d")),
+            shortcut_slurp_forward: Some(String::from("Ctrl-ArrowRight")),
+            shortcut_slurp_backward: Some(String::from("Ctrl-ArrowLeft")),
             show_line_numbers: false
         };
 

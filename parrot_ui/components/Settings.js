@@ -15,6 +15,8 @@ export class Settings extends Component {
         shortcutCompileToplevel: window.config.get('shortcut_compile_top_level'),
         shortcutEvalLastExpression: window.config.get('shortcut_eval_last_expression'),
         shortcutFindDefinition: window.config.get('shortcut_find_definition'),
+        shortcutSlurpForward: window.config.get('shortcut_slurp_forward'),
+        shortcutSlurpBackward: window.config.get('shortcut_slurp_backward'),
         showLineNumbers: config.get('show_line_numbers')
       };
         if (typeof this.props.accept !== 'function') {
@@ -45,6 +47,8 @@ export class Settings extends Component {
         window.config.set('shortcut_compile_top_level', this.state.shortcutCompileToplevel);
         window.config.set('shortcut_eval_last_expression', this.state.shortcutEvalLastExpression);
         window.config.set('shortcut_find_definition', this.state.shortcutFindDefinition);
+        window.config.set('shortcut_slurp_forward', this.state.shortcutSlurpForward);
+        window.config.set('shortcut_slurp_backward', this.state.shortcutSlurpBackward);
         window.config.write();
         this.props.accept();
     }
@@ -111,6 +115,20 @@ export class Settings extends Component {
                                         <div>Find definition of symbol before or under the cursor.<br/>Shortcut in CodeMirror syntax, e.g. "Shift-Ctrl-d", "Alt-d"</div>
                                         <div>
                                             <input type="text" value=${this.state.shortcutFindDefinition} onChange=${e => this.setState({shortcutFindDefinition: e.target.value})}/>
+                                        </div>
+                                    </div>
+                                    <div class="settings-item">
+                                        <div>Slurp forward</div>
+                                        <div>Shortcut in CodeMirror syntax, e.g. "Ctrl-ArrowRight"</div>
+                                        <div>
+                                            <input type="text" value=${this.state.shortcutSlurpForward} onChange=${e => this.setState({shortcutSlurpForward: e.target.value})}/>
+                                        </div>
+                                    </div>
+                                    <div class="settings-item">
+                                        <div>Slurp backward</div>
+                                        <div>Shortcut in CodeMirror syntax, e.g. "Ctrl-ArrowLeft"</div>
+                                        <div>
+                                            <input type="text" value=${this.state.shortcutSlurpBackward} onChange=${e => this.setState({shortcutSlurpBackward: e.target.value})}/>
                                         </div>
                                     </div>
                                     <div class="settings-item">

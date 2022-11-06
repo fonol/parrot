@@ -105,7 +105,7 @@ window.initEditor = (el, config, keyMap, updateCb) => {
     }
   }
   let keymaps = [
-    ...defaultKeymap,
+    // ...defaultKeymap,
     ...km
     // ...closeBracketsKeymap,
     // ...historyKeymap,

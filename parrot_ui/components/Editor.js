@@ -7,6 +7,10 @@ import {
     getPrecedingExpr,
     padStartEnd
 } from '../scripts/utils.js';
+import {
+    getSlurpForwardTarget,
+    getSlurpBackwardTarget,
+} from '../scripts/paredit.js';
 
 
 
@@ -173,6 +177,15 @@ export class Editor extends Component {
         if (findDefinitionShortCut) {
             map[findDefinitionShortCut] = this.findDefintion.bind(this);
         }
+        let slurpForwardShortcut = window.config.get('shortcut_slurp_forward');
+        if (slurpForwardShortcut) {
+            map[slurpForwardShortcut] = this.slurpForward.bind(this);
+        }
+        let slurpBackwardShortcut = window.config.get('shortcut_slurp_backward');
+        if (slurpBackwardShortcut) {
+            map[slurpBackwardShortcut] = this.slurpBackward.bind(this);
+        }
+
 
 
         if (!this.editor) {
@@ -305,6 +318,55 @@ export class Editor extends Component {
         }
         return true;
     }
+    slurpForward() {
+        let textBefore = this.getTextBeforeCursor();
+        let textAfter = this.getTextAfterCursor();
+        let cursorPos = this.getCursorPosition().pos;
+        let t = getSlurpForwardTarget(textBefore, textAfter, cursorPos);
+        if (t === null) {
+            notifications.error('Nothing to slurp.');
+        } else {
+            let slurpTargetText = this.getTextFromAbsPos(t.slurpTargetStart, t.slurpTargetEnd);
+            this.editor.dispatch({
+                changes: [{
+                    from: t.slurpTargetStart-1,
+                    to: t.slurpTargetEnd,
+                    insert: ''
+                },
+                {
+                    from: t.slurpDest,
+                    to: t.slurpDest,
+                    insert: ' ' + slurpTargetText
+                }]
+            });
+        }
+        return true;
+    }
+    slurpBackward() {
+        let textBefore = this.getTextBeforeCursor();
+        let textAfter = this.getTextAfterCursor();
+        let cursorPos = this.getCursorPosition().pos;
+        let t = getSlurpBackwardTarget(textBefore, textAfter, cursorPos);
+        if (t === null) {
+            notifications.error('Nothing to slurp.');
+        } else {
+            let slurpTargetText = this.getTextFromAbsPos(t.slurpTargetStart, t.slurpTargetEnd);
+            this.editor.dispatch({
+                changes: [{
+                    from: t.slurpTargetStart,
+                    to: t.slurpTargetEnd+1,
+                    insert: ''
+                },
+                {
+                    from: t.slurpDest,
+                    to: t.slurpDest,
+                    insert:  slurpTargetText + ' '
+                }]
+            });
+        }
+        return true;
+    }
+
     getCursorPosition() {
         let line = this.getCurrentLine();
         let ch = this.getCurrentColumn();
@@ -320,6 +382,9 @@ export class Editor extends Component {
             line: line,
             col: ch,
         }
+    }
+    getTextFromAbsPos(start, end) {
+        return this.getValue().substring(start, end);
     }
     /**
      * Vertically center the editor around the given line.

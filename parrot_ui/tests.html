@@ -1,6 +1,54 @@
 <html>
     <head>
-        <style>.failure { color: red; } .success { color: green; }</style>
+        <style>
+        body {
+            font-family: Arial, Helvetica, sans-serif;
+            background-color: whitesmoke;
+        }
+        h3 {
+            text-align: center;
+            background-color: blueviolet;
+            color: white;
+            padding: 10px;
+        }
+        .test {
+            background-color: #fdfdfd;
+            display: flex;
+            align-items: center;
+            margin: 5px 0;
+            padding: 7px;
+            border-radius: 4px;
+        }
+        .test-fn {
+            font-style: italic;
+            padding: 0 30px 0 10px;
+            word-break: break-all;
+            width: 200px;
+        }
+        .test-args {
+            width: 500px;
+            display: flex;
+            flex-direction: column;
+        }
+        .test-result-actual,
+        .test-result-expected {
+            display: flex;
+            padding: 0 10px;
+            flex-direction: column;
+            width: 300px;
+            word-break: break-all;
+
+        }
+        .test.success {
+            background-color: #1c8931;
+            color: white;
+        }
+        .test:not(.success) {
+            background-color: red;
+            color: white;
+        }
+        </style>
+        
 
     </head>
     <body>
@@ -9,13 +57,54 @@
 
         </div>
         <script type="module">
-            import { getSurroundingTopLevelExpr, getPrecedingExpr, getSymbolUnderOrBeforeCursor } from './scripts/utils.js'
+            import { getSurroundingTopLevelExpr, countClosedAndOpenedParentheses, getPrecedingExpr, getSymbolUnderOrBeforeCursor } from './scripts/utils.js'
+            import { getSlurpForwardTarget, getSlurpBackwardTarget } from './scripts/paredit.js';
+
             let el = document.getElementById('tests')
+
+            function renderTest(name, args, success, actual, expected) {
+                el.innerHTML += `
+                    <div class="test ${success ? 'success': ''}">
+                        <div class="test-fn">${name}</div>
+                        <div class="test-args">
+                            ${args.map(arg => '<div>'+ arg[0] + ': ' + JSON.stringify(arg[1]) + '</div>').join('')}
+                        </div>
+                        <div class="test-result-actual">
+                            <small>Actual</small>
+                            ${JSON.stringify(actual)}
+                        </div>
+                        <div class="test-result-expected">
+                            <small>Expected</small>
+                            ${JSON.stringify(expected)}
+                        </div>
+                    </div>
+                `;
+            }
 
             //
             // This is a very simple test suite for some of the utility functions from utils.js
             // Which are mostly about selecting forms / expressions close to the cursor.
             //
+
+            //
+            // testing countClosedAndOpenedParentheses
+            //
+            let testsCountClosedAndOpenedParentheses = [
+                ['', 0, 0],
+                ['  ', 0, 0],
+                ['()', 1, 1],
+                ['(())', 2, 2],
+                ['(()', 2, 1],
+                ['())', 1, 2],
+                ['(a "(")', 1, 1],
+                ['(a "\\"(")', 1, 1],
+                ['"( ( ) )"', 0, 0],
+            ];
+            for (let [arg1, opened, closed] of testsCountClosedAndOpenedParentheses) {
+                let actual = countClosedAndOpenedParentheses(arg1);
+                let success = actual.opened === opened && actual.closed === closed;
+                renderTest('countClosedAndOpenedParentheses', [['text', arg1]], success, actual, { closed: closed, opened: opened });
+            }
 
             //
             // testing getSurroundingTopLevelExpr()
@@ -48,11 +137,8 @@
                 if (actual) {
                     actual = actual.text;
                 }
-                el.innerHTML += `
-                    <div>
-                        getSurroundingTopLevelExpr('${before}', '${after}') = ${actual} ${actual === expected ? '<span class="success">Success</span>': '<span class="failure">Failure</span>'}
-                    </div>
-                `;
+                let success = actual === expected;
+                renderTest('getSurroundingTopLevelExpr', [['textBefore', before], ['textAfter', after]], success, actual, expected);
             }
             //
             // testing getPrecedingExpr()
@@ -80,11 +166,8 @@
                 ];
             for (let [arg1, expected] of testsGetPrecedingExpr) {
                 let actual = getPrecedingExpr(arg1);
-                el.innerHTML += `
-                    <div>
-                        getPrecedingExpr('${arg1}') = ${actual ? "'"+actual+"'" : actual} ${actual === expected ? '<span class="success">Success</span>': ('<span class="failure">Failure: Expected = '+expected+'</span>')}
-                    </div>
-                `;
+                let success = actual === expected;
+                renderTest('getPrecedingExpr', [['textBefore', arg1]], success, actual, expected);
             }
             //
             // testing getSymbolUnderOrBeforeCursor()
@@ -106,14 +189,61 @@
                 ];
             for (let [before, after, expected] of testsGetSymbolUnderOrBeforeCursor) {
                 let actual = getSymbolUnderOrBeforeCursor(before, after);
-                el.innerHTML += `
-                    <div>
-                        getSymbolUnderOrBeforeCursor('${before}', '${after}') = ${actual ? "'"+actual+"'" : actual} ${actual === expected ? '<span class="success">Success</span>': ('<span class="failure">Failure: Expected = '+expected+'</span>')}
-                    </div>
-                `;
+                let success = actual === expected;
+                renderTest('getSymbolUnderOrBeforeCursor', [['textBefore', before], ['textAfter', after]], success, actual, expected);
             }
 
+            
+            //
+            // testing getSlurpForwardTarget
+            //
+            let testsGetSlurpForwardTarget = [
+                ['', '', 0, null],
+                ['()', '', 2, null],
+                ['', '()', 0, null],
+                [' ', ' ', 1, null],
+                ['(', ') a', 1, { slurpTargetStart: 3, slurpTargetEnd: 4, slurpDest: 1}],
+                ['(', ') \'a', 1, { slurpTargetStart: 3, slurpTargetEnd: 5, slurpDest: 1}],
+                ['(', ') \na', 1, { slurpTargetStart: 4, slurpTargetEnd: 5, slurpDest: 1}],
+                ['(a ','b) a', 3, { slurpTargetStart: 6, slurpTargetEnd: 7, slurpDest: 4}],
+                ['(a b) (a ','b) a', 9, { slurpTargetStart: 12, slurpTargetEnd: 13, slurpDest: 10}],
+                ['(a b',') (c d)', 4, { slurpTargetStart: 6, slurpTargetEnd: 11, slurpDest: 4}],
+                ['(a b',') (c d (e f))', 4, { slurpTargetStart: 6, slurpTargetEnd: 17, slurpDest: 4}],
+                ['(', 'a b) "c"', 1, { slurpTargetStart: 6, slurpTargetEnd: 9, slurpDest: 4}],
+                ['((a ','b) a)', 4, { slurpTargetStart: 7, slurpTargetEnd: 8, slurpDest: 5}],
+
+            ];
+            for (let [arg1, arg2, arg3, expected] of testsGetSlurpForwardTarget) {
+                let actual = getSlurpForwardTarget(arg1, arg2, arg3);
+                let success = (actual === null && expected === null) 
+                    || (actual !== null && expected !== null 
+                        && actual.slurpTargetStart === expected.slurpTargetStart
+                        && actual.slurpTargetEnd === expected.slurpTargetEnd
+                        && actual.slurpDest === expected.slurpDest);
+                renderTest('getSlurpForwardTarget', [['textBefore', arg1], ['textAfter', arg2], ['cursorPos', arg3]], success, actual, expected);
+            }
+            //
+            // testing getSlurpBackwardTarget
+            //
+            let testsGetSlurpBackwardTarget = [
+                ['', '', 0, null],
+                ['()', '', 2, null],
+                ['', '()', 0, null],
+                [' ', ' ', 1, null],
+                ['(a (', 'b c))', 4, { slurpTargetStart: 1, slurpTargetEnd: 2, slurpDest: 4}],
+                ['(a (e', 'b c))', 5, { slurpTargetStart: 1, slurpTargetEnd: 2, slurpDest: 4}],
+
+            ];
+            for (let [arg1, arg2, arg3, expected] of testsGetSlurpBackwardTarget) {
+                let actual = getSlurpBackwardTarget(arg1, arg2, arg3);
+                let success = (actual === null && expected === null) 
+                    || (actual !== null && expected !== null 
+                        && actual.slurpTargetStart === expected.slurpTargetStart
+                        && actual.slurpTargetEnd === expected.slurpTargetEnd
+                        && actual.slurpDest === expected.slurpDest);
+                renderTest('getSlurpBackwardTarget', [['textBefore', arg1], ['textAfter', arg2], ['cursorPos', arg3]], success, actual, expected);
+            }
 
         </script>
     </body>
-</html>'
+</html>
