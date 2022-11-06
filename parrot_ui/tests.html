@@ -211,6 +211,8 @@
                 ['(a b',') (c d (e f))', 4, { slurpTargetStart: 6, slurpTargetEnd: 17, slurpDest: 4}],
                 ['(', 'a b) "c"', 1, { slurpTargetStart: 6, slurpTargetEnd: 9, slurpDest: 4}],
                 ['((a ','b) a)', 4, { slurpTargetStart: 7, slurpTargetEnd: 8, slurpDest: 5}],
+                ['((a b ', '(c d) e) f)', 6, { slurpTargetStart: 15, slurpTargetEnd: 16, slurpDest: 13}],
+                ['((a b ', '(c ")") e) f)', 6, { slurpTargetStart: 17, slurpTargetEnd: 18, slurpDest: 15}],
 
             ];
             for (let [arg1, arg2, arg3, expected] of testsGetSlurpForwardTarget) {
@@ -233,6 +235,7 @@
                 ['(a (', 'b c))', 4, { slurpTargetStart: 1, slurpTargetEnd: 2, slurpDest: 4}],
                 ['(a (e', 'b c))', 5, { slurpTargetStart: 1, slurpTargetEnd: 2, slurpDest: 4}],
                 ['(a b (c d) (', 'e f))', 12, { slurpTargetStart: 5, slurpTargetEnd: 10, slurpDest: 12}],
+                ['(a b (c d (e f)', '))', 15, { slurpTargetStart: 3, slurpTargetEnd: 4, slurpDest: 6}],
 
             ];
             for (let [arg1, arg2, arg3, expected] of testsGetSlurpBackwardTarget) {

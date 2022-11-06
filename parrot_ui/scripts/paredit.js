@@ -11,15 +11,28 @@ export function getSlurpForwardTarget(textBeforeCursor, textAfterCursor, cursorP
     let slurping = false;
     let startIx = -1;
     let lastSlurpDest = -1;
+    let insideString = false;
+    let open = 0;
+    let cPrev = '';
     for (var i = 0; i < textAfterCursor.length; i++) {
         let c = textAfterCursor.charAt(i);
         let isEnd = i === textAfterCursor.length - 1;
+        if (c === '"' && cPrev !== '\\') {
+            insideString = !insideString;
+        }
+        if (c === '(' && !insideString) {
+            open++;
+        } else if (c === ')' && !insideString) {
+            open--;
+        }
         if (!slurping) {
             if (c === ' ' || c === '\n' || c === '\t') {
+                cPrev = c;
                 continue;
-            } else if (c === ')') {
+            } else if (c === ')' && open < 0) {
                 lastSlurpDest = i;
                 canSlurp = true;
+                cPrev = c;
                 continue;
             }
         }
@@ -57,6 +70,7 @@ export function getSlurpForwardTarget(textBeforeCursor, textAfterCursor, cursorP
                 };
             }
         }
+        cPrev = c;
     }
     return null;
 }
@@ -67,13 +81,24 @@ export function getSlurpBackwardTarget(textBeforeCursor, textAfterCursor, cursor
     let slurping = false;
     let startIx = -1;
     let lastSlurpDest = -1;
+    let insideString = false;
+    let open = 0;
+
     for (var i = textBeforeCursor.length-1; i >= 0; i--) {
         let c = textBeforeCursor.charAt(i);
         let isEnd = i === 0;
+        if (c === '"' && (i === 0 || textBeforeCursor.charAt(i-1) !== '\\')) {
+            insideString = !insideString;
+        }
+        if (c === '(' && !insideString) {
+            open++;
+        } else if (c === ')' && !insideString) {
+            open--;
+        }
         if (!slurping) {
             if (c === ' ' || c === '\n' || c === '\t') {
                 continue;
-            } else if (c === '(') {
+            } else if (c === '(' && open > 0) {
                 lastSlurpDest = i;
                 canSlurp = true;
                 continue;
