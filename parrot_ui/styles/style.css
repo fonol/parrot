@@ -47,6 +47,9 @@ html {
   height: 8px;
   background-color: var(--c-scrollbar-bg)
 }
+::-webkit-scrollbar-corner { 
+  background: transparent;
+ }
 
 ::-webkit-scrollbar-thumb {
   background: var(--c-scrollbar-fg);
