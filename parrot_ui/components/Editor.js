@@ -19,12 +19,15 @@ export class Editor extends Component {
       super(props);
       this.state = { 
         path: props.path,
-        content: ''
+        content: '',
+        symbolInfo: null
+
       };
       this.loading = false;
       this.editorInitialized = false;
       this.editor = null;
       this.editorTarget = createRef();
+      this.symbolInfo = createRef();
       this.originalValue = '';
       this.editingExistingFile = props.path && props.path.length > 0;
         if (typeof props.onWantsToClose !== 'function') {
@@ -383,6 +386,71 @@ export class Editor extends Component {
             col: ch,
         }
     }
+
+    //
+    // symbol hovering 
+    // 
+    onSymbolMouseLeave(node) {
+        node.classList.remove('cm-info-shown');
+        this.removeHoverLoadingMeter();
+        this._symbolHover = null;
+        this.symbolInfo.current.style.display = 'none';
+        clearTimeout(this._nodeHoverDebounce);
+        clearTimeout(this._nodeHoverMeterDebounce);
+    }
+    removeHoverLoadingMeter() {
+        let meter = document.getElementById('cm-info-loading-meter');
+        if (meter) {
+            meter.remove();
+        }
+    }
+    onSymbolHover(e) {
+        let node = document.elementFromPoint(e.clientX, e.clientY) 
+        if (node && node.className.startsWith('ͼ')) {
+            let nodeText = node.innerText;
+            // todo: * * around global vars is not included here
+
+            if (!nodeText.includes(' ') && nodeText !== this._symbolHover) {
+
+                let nodebox = node.getBoundingClientRect();
+
+                // display loading meter
+                this._nodeHoverMeterDebounce = setTimeout(() => {
+                    let meter = document.createElement('div');
+                    meter.id = 'cm-info-loading-meter';
+                    document.body.appendChild(meter);
+                    meter.style.top = (nodebox.top + nodebox.height) + "px";
+                    meter.style.left = nodebox.left + 'px';
+                    meter.style.width = nodebox.width + 'px';
+                    meter.innerHTML = '<span><span class="bar"></span></span>';
+                }, 500);
+
+                node.onmouseleave = () => this.onSymbolMouseLeave(node);
+                node.onclick = () => this.onSymbolMouseLeave(node);
+                node.classList.add('cm-info-shown');
+                let self = this;
+                this._symbolHover = nodeText;
+                this._nodeHoverDebounce = setTimeout(() => {
+                    backend.getSymbolInfo(nodeText)
+                        .then(([describeResult, aproposResult]) => {
+                            self.removeHoverLoadingMeter();
+                            self.setState(s => {
+                                s.symbolInfo = { describe: describeResult, apropos: aproposResult };
+                                return s;
+                            });
+                            self.forceUpdate();
+                            // position box under symbol
+                            let ibox = self.symbolInfo.current;
+                            let ebox = self.editorTarget.current.getBoundingClientRect();
+                            ibox.style.display = 'block';
+                            ibox.style.top = (nodebox.top + nodebox.height - ebox.top) + "px";
+                            ibox.style.left = (nodebox.left - ebox.left) + 'px';
+                        })
+                }, 2000);
+            }
+        }
+    }
+
     getTextFromAbsPos(start, end) {
         return this.getValue().substring(start, end);
     }
@@ -430,13 +498,24 @@ export class Editor extends Component {
     }
     render() {
         return html`
-            <div class="editor">
+            <div class="editor" onmousemove=${this.onSymbolHover.bind(this)}>
                 <div class="flex-row flex-right" style="position: absolute; top: 10px; right: 10px; z-index: 2;">
                     <div class="btn-icon icon-only" onClick=${this.replCompileAndLoadFile.bind(this)} title="Load file to REPL" style="width: auto; height: auto;">
                         <svg height="28" width="28" viewBox="0 0 512 512"><path fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="32" d="M160 368L32 256l128-112M352 368l128-112-128-112M192 288.1l64 63.9 64-63.9M256 160v176.03"/></svg>
                     </div>
                 </div>
                 <div class="h-100" ref=${this.editorTarget}></div>
+                <div ref=${this.symbolInfo} class="cm-symbol-info">
+                    ${this.state.symbolInfo}
+                    ${this.state.symbolInfo !== null && html`
+                        <div>
+                            *Symbol info*
+                            <!-- todo -->
+                            <!-- ${this.state.symbolInfo.describe} -->
+                            <!-- ${this.state.symbolInfo.apropos} -->
+                        </div>
+                    `}
+                </div>
             </div>`
     }
   }

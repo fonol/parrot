@@ -84,6 +84,19 @@ window.backend = new function() {
     }
 
     //
+    // others
+    //
+    this.getSymbolInfo = (symbol) => {
+        let continuation = cont();
+        invoke('describe_symbol', { symbol: symbol, continuation: continuation });
+        let p1 = createPendingPromise(continuation);
+        continuation = cont();
+        invoke('apropos_symbol', { symbol: symbol, continuation: continuation });
+        let p2 = createPendingPromise(continuation);
+        return Promise.all([p1, p2]);
+    }
+
+    //
     // state
     //
     this.loadState = () => invoke('get_state');

@@ -46,4 +46,41 @@
   color: #584332 !important;
 }
 
+/* Symbol info on hover */
+.cm-info-shown {
+  background-color: #342f2b;
+
+}
+#cm-info-loading-meter {
+  position: absolute;
+  height: 5px;
+  width: 30px;
+  background: #242424;
+  overflow: hidden;
+}
+#cm-info-loading-meter > span {
+  width: 100%;
+}
+#cm-info-loading-meter span {
+  display: block;
+  height: 100%;
+}
+#cm-info-loading-meter .bar {
+  background-color: var(--active-secondary-color);
+  animation: cmInfoProgressBar 1.5s linear;
+}
+@keyframes cmInfoProgressBar {
+  0% { width: 0; }
+  100% { width: 100%; }
+}
+.cm-symbol-info {
+
+  position: absolute;
+  background-color: #342f2b;
+  padding: 10px;
+  max-height: 300px;
+}
+/* End Symbol info on hover */
+
+
 /* End CodeMirror */

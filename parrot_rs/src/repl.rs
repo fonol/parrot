@@ -192,6 +192,7 @@ impl REPL {
                     };
                     let sw = parse_slynk_answer(&body, ccb);
 
+                    let mut handled = false;
 
                     // handle answer
                     println!("Got SlynkAnswer: {:?}", &sw);
@@ -222,8 +223,13 @@ impl REPL {
                                         sender_tcp.send(SlynkAnswer::ResolvePending { continuation: *cont, data: serde_json::to_string(&parse_package_list(&value).unwrap()).unwrap() }).expect("Could not send"),
                                     ContinuationCallback::DisplaySymbolsInPackage(cont) => 
                                         sender_tcp.send(SlynkAnswer::ResolvePending { continuation: *cont, data: serde_json::to_string(&parse_symbol_list(value.clone()).unwrap()).unwrap() }).expect("Could not send"),
+                                    ContinuationCallback::DisplayDescribe(cont) => 
+                                        sender_tcp.send(SlynkAnswer::ResolvePending { continuation: *cont, data: serde_json::to_string(&parse_describe(value.clone()).unwrap()).unwrap() }).expect("Could not send"),
+                                    ContinuationCallback::DisplayApropos(cont) => 
+                                        sender_tcp.send(SlynkAnswer::ResolvePending { continuation: *cont, data: serde_json::to_string(&parse_apropos(value.clone()).unwrap()).unwrap() }).expect("Could not send"),
                                      _ => ()
                                 }
+                                handled = true;
                             }
                          },
                          SlynkAnswer::ReturnCompilationResult { continuation, success, fasl_file, .. } => {
@@ -246,7 +252,9 @@ impl REPL {
 
                         }
                     }
-                    sender_tcp.send(sw).expect("Failed to send.");
+                    if !handled {
+                        sender_tcp.send(sw).expect("Failed to send.");
+                    }
 
                 };
                 println!("Thread reading incoming messages from Slynk stopped.");
@@ -315,6 +323,16 @@ impl REPL {
                         SlynkMessage::ListAllPackages(cont) => {
                             pending_handle_in.lock().unwrap().insert(continuation, ContinuationCallback::DisplayPackages(*cont));
                             emacs_rex("(slynk:interactive-eval \"(list-all-packages)\")", &package_handle.lock().unwrap(), &continuation)
+                        },
+                        SlynkMessage::DescribeForSymbolInfo{ symbol, cont } => {
+                            pending_handle_in.lock().unwrap().insert(continuation, ContinuationCallback::DisplayDescribe(*cont));
+                            // todo: handle ' or #' in front of symbol
+                            emacs_rex(&format!("(slynk:eval-and-grab-output \"(describe '{})\")", symbol), &package_handle.lock().unwrap(), &continuation)
+                        },
+                        SlynkMessage::AproposForSymbolInfo{ symbol, cont } => {
+                            pending_handle_in.lock().unwrap().insert(continuation, ContinuationCallback::DisplayApropos(*cont));
+                            // todo: handle ' or #' in front of symbol
+                            emacs_rex(&format!("(slynk:eval-and-grab-output \"(apropos '{})\")", symbol), &package_handle.lock().unwrap(), &continuation)
                         },
                         SlynkMessage::ListSymbolsInPackage{ package, vars, macros, functions, classes, cont} => {
                             let lst_symbols = format!(r#"
@@ -462,6 +480,14 @@ impl REPL {
         Ok(())
     }
 
+    pub fn describe_symbol(&self, symbol: String, continuation: usize) -> BackendResult<()> {
+        self.slynk_repl_sender.send(SlynkMessage::DescribeForSymbolInfo { symbol, cont: continuation  })?;
+        Ok(())
+    }
+    pub fn apropos_symbol(&self, symbol: String, continuation: usize) -> BackendResult<()> {
+        self.slynk_repl_sender.send(SlynkMessage::AproposForSymbolInfo { symbol, cont: continuation  })?;
+        Ok(())
+    }
 
     fn get_continuation_callback(&self, return_value: &str) -> Option<ContinuationCallback> {
         get_continuation(return_value)

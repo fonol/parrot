@@ -72,6 +72,7 @@ const CommonLisp = LRLanguage.define({
 });
 
 const highlightStyle = HighlightStyle.define([
+  {tag: tags.variableName, color: "hsl(34, 50%, 80%)"},
   {tag: tags.keyword, color: "#35c16d"},
   {tag: tags.comment, color: "#a54819"},
   {tag: tags.number, color: "#80caff"},

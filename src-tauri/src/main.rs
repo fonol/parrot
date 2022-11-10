@@ -98,6 +98,9 @@ fn main() {
 
             search_source_files,
 
+            describe_symbol,
+            apropos_symbol,
+
             get_all_packages,
             get_symbols_in_package,
 
@@ -330,6 +333,21 @@ fn get_symbols_in_package(package: String, vars: bool, functions: bool, classes:
         .get_symbols_in_package(package, vars, functions, classes, macros, continuation)
 }
 
+//
+// other
+//
+#[tauri::command]
+fn describe_symbol(symbol: String, continuation: usize) -> BackendResult<()> {
+    REPL.lock()
+        .unwrap()
+        .describe_symbol(symbol, continuation)
+}
+#[tauri::command]
+fn apropos_symbol(symbol: String, continuation: usize) -> BackendResult<()> {
+    REPL.lock()
+        .unwrap()
+        .apropos_symbol(symbol, continuation)
+}
 
 //
 // state

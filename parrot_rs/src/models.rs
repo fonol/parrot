@@ -200,6 +200,14 @@ pub enum SlynkMessage {
         classes: bool,
         cont: usize
     },
+    DescribeForSymbolInfo {
+        symbol: String,
+        cont: usize
+    },
+    AproposForSymbolInfo {
+        symbol: String,
+        cont: usize
+    }
 }
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct EditorPosition {
@@ -215,7 +223,9 @@ pub enum ContinuationCallback {
     LoadFile,
     JumpToDef,
     DisplayPackages(usize),
-    DisplaySymbolsInPackage(usize)
+    DisplaySymbolsInPackage(usize),
+    DisplayDescribe(usize),
+    DisplayApropos(usize),
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]

@@ -161,8 +161,14 @@ pub fn parse_symbol_list(return_value: String) -> BackendResult<Vec<String>> {
             .map(|s| s.to_string())
             .sorted()
             .collect())
-
     }
+}
+
+pub fn parse_describe(return_value: String) -> BackendResult<String> {
+    Ok(return_value)
+}
+pub fn parse_apropos(return_value: String) -> BackendResult<String> {
+    Ok(return_value)
 }
 
 
