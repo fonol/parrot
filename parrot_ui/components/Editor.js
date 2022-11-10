@@ -506,7 +506,6 @@ export class Editor extends Component {
                 </div>
                 <div class="h-100" ref=${this.editorTarget}></div>
                 <div ref=${this.symbolInfo} class="cm-symbol-info">
-                    ${this.state.symbolInfo}
                     ${this.state.symbolInfo !== null && html`
                         <div>
                             *Symbol info*
