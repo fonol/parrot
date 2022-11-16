@@ -14,7 +14,7 @@ use std::time::Duration;
 use os_pipe::{self, PipeWriter};
 use utf8_chars::BufReadCharsExt;
 use crate::models::*;
-use crate::text::{trim_quotes, unescape_quotes, escape_quotes};
+use crate::text::{trim_quotes, unescape_quotes, escape_quotes, quote};
 use crate::{BackendResult, BackendError};
 use lazy_static::lazy_static;
 use sexp::{self, Atom, Sexp};
@@ -327,12 +327,12 @@ impl REPL {
                         SlynkMessage::DescribeForSymbolInfo{ symbol, cont } => {
                             pending_handle_in.lock().unwrap().insert(continuation, ContinuationCallback::DisplayDescribe(*cont));
                             // todo: handle ' or #' in front of symbol
-                            emacs_rex(&format!("(slynk:eval-and-grab-output \"(describe '{})\")", symbol), &package_handle.lock().unwrap(), &continuation)
+                            emacs_rex(&format!("(slynk:eval-and-grab-output \"(describe {})\")", quote(symbol)), &package_handle.lock().unwrap(), &continuation)
                         },
                         SlynkMessage::AproposForSymbolInfo{ symbol, cont } => {
                             pending_handle_in.lock().unwrap().insert(continuation, ContinuationCallback::DisplayApropos(*cont));
                             // todo: handle ' or #' in front of symbol
-                            emacs_rex(&format!("(slynk:eval-and-grab-output \"(apropos '{})\")", symbol), &package_handle.lock().unwrap(), &continuation)
+                            emacs_rex(&format!("(slynk:eval-and-grab-output \"(apropos {})\")", quote(symbol)), &package_handle.lock().unwrap(), &continuation)
                         },
                         SlynkMessage::ListSymbolsInPackage{ package, vars, macros, functions, classes, cont} => {
                             let lst_symbols = format!(r#"
