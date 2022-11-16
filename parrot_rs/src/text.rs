@@ -1,6 +1,7 @@
 use itertools::Itertools;
 use lazy_static::lazy_static;
 use regex::Regex;
+use std::borrow::Cow;
 use std::collections::hash_map::DefaultHasher;
 use std::hash::{Hash, Hasher};
 use std::sync::Mutex;
@@ -120,6 +121,17 @@ pub fn trim_quotes(mut text: String) -> String {
     }
     text
 }
+pub fn trim_escaped_quotes(mut text: String) -> String {
+    if text.starts_with("\\\"") {
+        text.remove(0);
+        text.remove(0);
+    }
+    if text.ends_with("\\\"") {
+        text.pop();
+        text.pop();
+    }
+    text
+}
 pub fn trim_parens(mut text: String) -> String {
     if text.starts_with("(") {
         text.remove(0);
@@ -131,6 +143,15 @@ pub fn trim_parens(mut text: String) -> String {
 }
 pub fn unescape_quotes(text: &str) -> String {
     text.replace("\\\"", "\"")
+}
+pub fn quote(text: &str) -> Cow<str> {
+    if text.starts_with("#'") {
+        Cow::Borrowed(text)
+    } else if text.starts_with("'") {
+        Cow::Borrowed(text)
+    } else {
+        Cow::Owned(format!("'{}", text))
+    }
 }
 
 //
