@@ -71,6 +71,43 @@ fn parse_find_definition_result_multiple() {
 
 }
 
+#[test]
+fn parse_compilation_result_with_notes() {
+    let message = r#"(:return (:ok (:compilation-result ((:message "The variable A is defined but never used." :severity :style-warning :location (:location (:file "path/to/test_project/test.lisp") (:position 562) nil) :references nil :source-context "--> SB-IMPL::%DEFUN SB-IMPL::%DEFUN SB-INT:NAMED-LAMBDA
+    ==>
+      #'(SB-INT:NAMED-LAMBDA TEST
+            (A B)
+          (BLOCK TEST (LIST 'B 'A)))
+    ") (:message "The variable B is defined but never used." :severity :style-warning :location (:location (:file "path/to/test_project/test.lisp") (:position 562) nil) :references nil :source-context "--> SB-IMPL::%DEFUN SB-IMPL::%DEFUN SB-INT:NAMED-LAMBDA  
+    ==>
+      #'(SB-INT:NAMED-LAMBDA TEST
+            (A B)
+          (BLOCK TEST (LIST 'B 'A)))
+    ") (:message "Duplicate definition for TEST found in one file." :severity :warning :location (:location (:file "path/to/test_project/test.lisp") (:position 617) nil) :references ((:ansi-cl :section (3 2 2 3))) :source-context "==>
+      (EVAL-WHEN (:COMPILE-TOPLEVEL) (SB-C:%COMPILER-DEFUN 'TEST T NIL NIL))
+    ") (:message "The variable A is defined but never used." :severity :style-warning :location (:location (:file "path/to/test_project/test.lisp") (:position 617) nil) :references nil :source-context "--> SB-IMPL::%DEFUN SB-IMPL::%DEFUN SB-INT:NAMED-LAMBDA  
+    ==>
+      #'(SB-INT:NAMED-LAMBDA TEST
+            (A B)
+          (BLOCK TEST (LIST 'MY-FUN B)))
+    ")) nil 0.05266899988055229 t "path/to/test.fasl")) 1)"#;
+
+    let parsed = parse_slynk_answer(message, None);
+    assert!(matches!(parsed, SlynkAnswer::ReturnCompilationResult { .. }));
+    if let SlynkAnswer::ReturnCompilationResult {  notes, success, fasl_file, ..} = parsed {
+        assert!(!success);
+        assert!(matches!(Some(String::from("path/to/test.fasl")), fasl_file));
+        assert!(notes.is_some());
+        if let Some(compiler_notes) = notes {
+            assert_eq!(4, compiler_notes.len());
+        }
+    } else {
+        panic!("Wrong enum variant")
+    }
+
+
+}
+
 ///
 /// This ist the returned value from slynk when evaluating (list-all-packages) in the REPL
 #[test]
