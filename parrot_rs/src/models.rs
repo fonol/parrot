@@ -132,7 +132,8 @@ pub enum ReturnStatus {
 pub struct CompilerNotes {
     pub message: String,
     pub severity: String,
-    pub file: Option<String>
+    pub file: Option<String>,
+    pub position: Option<usize>
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
