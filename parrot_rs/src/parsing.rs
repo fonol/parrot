@@ -1,4 +1,4 @@
-use itertools::Itertools;
+use itertools::{Itertools, Position};
 use regex::{Regex, RegexBuilder};
 use sexp::{Sexp, Atom};
 use lazy_static::lazy_static;
@@ -16,8 +16,8 @@ lazy_static! {
     static ref EVALUATION_ABORTED: Regex = Regex::new(" ?\\(:evaluation-aborted \"(?P<message>.+)\"\\)$").unwrap();
     static ref PROMPT: Regex = Regex::new("\\(:prompt \"(.+)\" \"(.+)\" (?P<elevel>[0-9]+) (?P<len_history>[0-9]+)( \"(?P<condition>.+)\")?\\)$").unwrap();
     static ref CHANNEL_SEND: Regex = RegexBuilder::new("\\(:channel-send ([0-9]+) (\\((?:.|\n)+\\))\\)$").multi_line(true).build().unwrap();
-    static ref COMPILATION_RESULT: Regex = RegexBuilder::new(" ?\\(:compilation-result (?P<notes>nil|\".+\"|\\((\\(.+\\))+\\)) (?P<success>nil|t) (?P<duration>[0-9]+\\.[0-9]+) (?P<loadp>nil|t) (?P<faslfile>nil|\".+\")\\)$").dot_matches_new_line(true).build().unwrap();
-    static ref COMPILER_NOTES: Regex = RegexBuilder::new("\\((\\(:message \"(?P<message>.+)\" :severity :(?P<severity>[^ ]+) :location \\(:location \\(:file \"(?P<file>.+)\"\\) \\(:position .+\\) nil\\) :references .+\\))+\\)").build().unwrap();
+    static ref COMPILATION_RESULT: Regex = RegexBuilder::new(" ?\\(:compilation-result (?P<notes>nil|\".+\"|\\((\\((?:.|\n)+\\)\\s*)+\\)) (?P<success>nil|t) (?P<duration>[0-9]+\\.[0-9]+) (?P<loadp>nil|t) (?P<faslfile>nil|\".+\")\\)$").dot_matches_new_line(true).build().unwrap();
+    static ref COMPILER_NOTES: Regex = RegexBuilder::new("\\(:message \"(?P<message>(?:.|\n)+?)\" :severity :(?P<severity>[^ ]+) :location \\(:location \\(:file \"(?P<file>[^\"]+?)\"\\) \\(:position (?P<pos>[0-9]+)\\) nil\\) :references (?P<refs>nil|\\((\\(.+?\\) ?)+\\))+?( :source-context \"(?:.|\n)+?\")?\\)").build().unwrap();
 }
 
 
@@ -165,10 +165,14 @@ pub fn parse_symbol_list(return_value: String) -> BackendResult<Vec<String>> {
 }
 
 pub fn parse_describe(return_value: String) -> BackendResult<String> {
-    Ok(return_value)
+    let sexp = sexp::parse(&return_value).unwrap();
+    let desc = sexp_list_nth_as_string(&sexp, 0).unwrap();
+    Ok(desc)
 }
 pub fn parse_apropos(return_value: String) -> BackendResult<String> {
-    Ok(return_value)
+    let sexp = sexp::parse(&return_value).unwrap();
+    let lst = sexp_list_nth_as_string(&sexp, 0).unwrap();
+    Ok(lst)
 }
 
 
@@ -251,7 +255,6 @@ pub fn parse_slynk_answer(m: &str, ccb: Option<&ContinuationCallback>) -> SlynkA
             SlynkAnswer::ReturnFindDefinitionResult { continuation, definitions } 
 
         } else if COMPILATION_RESULT.is_match(&value) {
-
             captures = COMPILATION_RESULT.captures(&value).unwrap();
             let cnotes = captures.name("notes").unwrap().as_str();
             let notes = if COMPILER_NOTES.is_match(&cnotes) {
@@ -260,10 +263,12 @@ pub fn parse_slynk_answer(m: &str, ccb: Option<&ContinuationCallback>) -> SlynkA
                     let message = c.name("message").unwrap().as_str().to_string();
                     let severity = c.name("severity").unwrap().as_str().to_string();
                     let file = c.name("file").map(|m| m.as_str().to_string());
+                    let position = c.name("pos").map(|m| m.as_str().parse::<usize>().unwrap());
                     lnotes.push(CompilerNotes {
                         message, 
                         severity,
-                        file
+                        file,
+                        position
                     });
                 }
                 Some(lnotes)
