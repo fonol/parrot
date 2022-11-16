@@ -66,8 +66,10 @@ const CommonLisp = LRLanguage.define({
             })
         ]
     }),
+    
     languageData: {
-        commentTokens: { line: ";" }
+        commentTokens: { line: ";" },
+        closeBrackets: { brackets: ["(", "[", "{", "", '"'] }
     }
 });
 

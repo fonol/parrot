@@ -26680,8 +26680,10 @@
                })
            ]
        }),
+       
        languageData: {
-           commentTokens: { line: ";" }
+           commentTokens: { line: ";" },
+           closeBrackets: { brackets: ["(", "[", "{", "", '"'] }
        }
    });
 
