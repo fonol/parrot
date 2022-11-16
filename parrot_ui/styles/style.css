@@ -122,6 +122,10 @@ input.invalid {
 hr {
   border-color: #b99272;
 }
+pre {
+  margin: 0;
+  font-family: 'Cascadia Code';
+}
 button {
   box-sizing: border-box;
   padding: 7px 11px;

@@ -67,7 +67,7 @@
 }
 #cm-info-loading-meter .bar {
   background-color: var(--active-secondary-color);
-  animation: cmInfoProgressBar 1.5s linear;
+  animation: cmInfoProgressBar 1.0s linear;
 }
 @keyframes cmInfoProgressBar {
   0% { width: 0; }
@@ -76,9 +76,24 @@
 .cm-symbol-info {
 
   position: absolute;
-  background-color: #342f2b;
-  padding: 10px;
-  max-height: 300px;
+  background-color: var(--pane-bg);
+  max-height: 350px;
+  max-width: 650px;
+  flex-direction: column;
+  overflow: hidden;
+}
+.cm-symbol-info__tab-header {
+  cursor: pointer;
+  padding: 7px 14px;
+  background-color: var(--pane-bg);
+  color: var(--text-secondary-color);
+}
+.cm-symbol-info__tab-header:hover {
+  background-color: rgb(52 47 41);
+}
+.cm-symbol-info__tab-header.active {
+  color: var(--active-primary-color);
+  background-color: rgb(59, 53, 46);
 }
 /* End Symbol info on hover */
 

@@ -20,8 +20,8 @@ export class Editor extends Component {
       this.state = { 
         path: props.path,
         content: '',
-        symbolInfo: null
-
+        symbolInfo: null,
+        symbolInfoTab: 'describe'
       };
       this.loading = false;
       this.editorInitialized = false;
@@ -390,13 +390,41 @@ export class Editor extends Component {
     //
     // symbol hovering 
     // 
-    onSymbolMouseLeave(node) {
-        node.classList.remove('cm-info-shown');
+    setSymbolInfoTab(tab) {
+        if (tab !== this.state.symbolInfoTab) {
+            this.setState({ symbolInfoTab: tab });
+            this.forceUpdate();
+        }
+    }
+    hideSymbolInfo(node) {
+        if (node) {
+            node.classList.remove('cm-info-shown');
+        }
         this.removeHoverLoadingMeter();
         this._symbolHover = null;
+        this.symbolInfoShown = false;
         this.symbolInfo.current.style.display = 'none';
         clearTimeout(this._nodeHoverDebounce);
         clearTimeout(this._nodeHoverMeterDebounce);
+    }
+    onSymbolMouseLeave(node) {
+        if (this.symbolInfoShown) {
+            let self = this;
+            this._to = setTimeout(() => {
+                if (!self.symbolInfoIsHovered) {
+                    self.hideSymbolInfo(node);
+                }
+            }, 300);
+        } else {
+            this.hideSymbolInfo(node);
+        }
+    }
+    onSymbolInfoMouseEnter() {
+        this.symbolInfoIsHovered = true;
+    }
+    onSymbolInfoMouseLeave() {
+        this.symbolInfoIsHovered = false;
+        this.hideSymbolInfo();
     }
     removeHoverLoadingMeter() {
         let meter = document.getElementById('cm-info-loading-meter');
@@ -419,9 +447,9 @@ export class Editor extends Component {
                     let meter = document.createElement('div');
                     meter.id = 'cm-info-loading-meter';
                     document.body.appendChild(meter);
-                    meter.style.top = (nodebox.top + nodebox.height) + "px";
-                    meter.style.left = nodebox.left + 'px';
-                    meter.style.width = nodebox.width + 'px';
+                    meter.style.top = `${nodebox.top + nodebox.height}px`;
+                    meter.style.left = `${nodebox.left}px`; 
+                    meter.style.width = `${nodebox.width}px`;
                     meter.innerHTML = '<span><span class="bar"></span></span>';
                 }, 500);
 
@@ -434,19 +462,20 @@ export class Editor extends Component {
                     backend.getSymbolInfo(nodeText)
                         .then(([describeResult, aproposResult]) => {
                             self.removeHoverLoadingMeter();
+                            self.symbolInfoShown = true;
                             self.setState(s => {
-                                s.symbolInfo = { describe: describeResult, apropos: aproposResult };
+                                s.symbolInfo = { describe: JSON.parse(describeResult), apropos: JSON.parse(aproposResult) };
                                 return s;
                             });
                             self.forceUpdate();
                             // position box under symbol
                             let ibox = self.symbolInfo.current;
                             let ebox = self.editorTarget.current.getBoundingClientRect();
-                            ibox.style.display = 'block';
-                            ibox.style.top = (nodebox.top + nodebox.height - ebox.top) + "px";
-                            ibox.style.left = (nodebox.left - ebox.left) + 'px';
+                            ibox.style.display = 'flex';
+                            ibox.style.top = `${nodebox.top + nodebox.height - ebox.top}px`;
+                            ibox.style.left = `${nodebox.left - ebox.left}px`;
                         })
-                }, 2000);
+                }, 1500);
             }
         }
     }
@@ -505,13 +534,27 @@ export class Editor extends Component {
                     </div>
                 </div>
                 <div class="h-100" ref=${this.editorTarget}></div>
-                <div ref=${this.symbolInfo} class="cm-symbol-info">
+                <div ref=${this.symbolInfo} class="cm-symbol-info"
+                    onmouseenter=${this.onSymbolInfoMouseEnter.bind(this)}
+                    onmouseleave=${this.onSymbolInfoMouseLeave.bind(this)}>
                     ${this.state.symbolInfo !== null && html`
-                        <div>
-                            *Symbol info*
-                            <!-- todo -->
-                            <!-- ${this.state.symbolInfo.describe} -->
-                            <!-- ${this.state.symbolInfo.apropos} -->
+                        <div class="flex-col overflow-hidden flex-1">
+                            <div class="flex-row mb-5">
+                                <div onClick=${() => this.setSymbolInfoTab('describe')} className=${'cm-symbol-info__tab-header'+ (this.state.symbolInfoTab === 'describe'? ' active': '')}>DESCRIBE</div>
+                                <div onClick=${() => this.setSymbolInfoTab('apropos')} className=${'cm-symbol-info__tab-header'+ (this.state.symbolInfoTab === 'apropos'? ' active': '')}>APROPOS</div>
+                            </div>
+                            <div class="flex-1 overflow-auto p-10">
+                                ${this.state.symbolInfoTab === 'describe' && html`
+                                    <pre>
+                                        ${this.state.symbolInfo.describe}
+                                    </pre>
+                                `}
+                                ${this.state.symbolInfoTab === 'apropos' && html`
+                                    <pre>
+                                        ${this.state.symbolInfo.apropos}
+                                    </pre>
+                                `}
+                            </div>
                         </div>
                     `}
                 </div>
