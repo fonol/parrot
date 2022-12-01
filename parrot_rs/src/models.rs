@@ -87,7 +87,7 @@ pub enum SlynkAnswer {
         level: usize,
         condition: DebugCondition,
         restarts: Vec<Restart>,
-        frames: Vec<String>,
+        frames: Vec<DebugFrame>,
         continuations: Vec<String>
     },
     DebugActivate {
@@ -126,6 +126,12 @@ pub enum SlynkAnswer {
 pub enum ReturnStatus {
     Ok, 
     Abort
+}
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct DebugFrame {
+    pub ix: usize,
+    pub label: String, 
+    pub restartable: bool
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -180,6 +186,7 @@ pub enum SlynkMessage {
     Eval(String),
     InteractiveEval(String),
     InvokeNthRestart(usize, usize, usize),
+    FrameLocals(usize, usize, usize),
     CompileAndLoadFile(String),
     LoadFile(String),
     FindDefinitions(String),
@@ -227,10 +234,18 @@ pub enum ContinuationCallback {
     DisplaySymbolsInPackage(usize),
     DisplayDescribe(usize),
     DisplayApropos(usize),
+    DisplayFrameLocals(usize)
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub enum PrintKind {
     Repl,
     Notification,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct FrameLocal {
+    pub name: String,
+    pub id: usize,
+    pub value: String
 }

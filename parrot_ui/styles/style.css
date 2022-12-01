@@ -757,19 +757,21 @@ body.resizing  {
   /* border: 1px solid #483d33; */
   border-radius: 5px;
 }
-.debug-overlay__restart {
+.debug-overlay__restart, .debug-overlay__frame {
   display: flex;
   align-items: stretch;
   cursor: pointer;
 }
-.debug-overlay__restart:hover {
+.debug-overlay__restart:hover, .debug-overlay__frame:hover {
   background-color: rgb(59, 53, 46);
 }
-.debug-overlay__restart > div {
+.debug-overlay__restart > div, .debug-overlay__frame > div {
   padding: 5px 10px;
   box-sizing: border-box;
 }
-.debug-overlay__restart > div:nth-child(1) {
+.debug-overlay__restart > div:nth-child(1),
+.debug-overlay__frame > div:nth-child(1)
+ {
   flex: 0 0 40px;
   color: var(--text-secondary-color);
 }
@@ -777,6 +779,9 @@ body.resizing  {
   flex: 0 0 130px;
 }
 .debug-overlay__restart > div:nth-child(3) {
+  flex: 1;
+}
+.debug-overlay__frame > div:nth-child(2) {
   flex: 1;
 }
 .debug-overlay__bottom-bar {

@@ -68,6 +68,16 @@ pub fn sexp_list_nth_as_usize(sexp: &Sexp, n: usize) -> BackendResult<usize> {
         Err(BackendError("Failed to parse sexp.".to_string()))
     }
 }
+pub fn sexp_list_nth_as_bool(sexp: &Sexp, n: usize) -> BackendResult<bool> {
+    if let Sexp::List(children) = sexp {
+        match &children[n] {
+            Sexp::Atom(Atom::S(value)) => Ok(value.eq_ignore_ascii_case("t")),
+            _ => Err(BackendError("Failed to parse sexp.".to_string()))
+        }
+    } else {
+        Err(BackendError("Failed to parse sexp.".to_string()))
+    }
+}
 pub fn sexp_list_nth_as_list(sexp: &Sexp, n: usize) -> BackendResult<&Vec<Sexp>> {
     if let Sexp::List(children) = sexp {
         match &children[n] {
@@ -92,6 +102,21 @@ pub fn sexp_list_nth_or_nil(sexp: &Sexp, n: usize) -> BackendResult<Option<&Sexp
             Sexp::Atom(Atom::S(s)) if s == "nil" => Ok(None),
             _ => Ok(Some(&children[n]))
         }
+    } else {
+        Err(BackendError("Failed to parse sexp.".to_string()))
+    }
+}
+//
+// sexp=(a), n=1 -> None
+// sexp=(a (b c)), n=1 -> Some(Sexp::List(...))
+// sexp=(a nil), n=1 -> Some(Sexp::Atom(...))
+//
+pub fn sexp_list_nth_or_none(sexp: &Sexp, n: usize) -> BackendResult<Option<&Sexp>> {
+    if let Sexp::List(children) = sexp {
+        if n > children.len() - 1 {
+           return Ok(None);
+        }
+        return Ok(Some(&children[n]));
     } else {
         Err(BackendError("Failed to parse sexp.".to_string()))
     }
@@ -172,6 +197,18 @@ pub fn parse_describe(return_value: String) -> BackendResult<String> {
 pub fn parse_apropos(return_value: String) -> BackendResult<String> {
     let sexp = sexp::parse(&return_value).unwrap();
     let lst = sexp_list_nth_as_string(&sexp, 0).unwrap();
+    Ok(lst)
+}
+pub fn parse_frame_locals(return_value: &str) -> BackendResult<Vec<FrameLocal>> {
+    let sexp = sexp::parse(return_value).unwrap();
+    let lcls = sexp_list_nth_as_list(&sexp, 0).unwrap();
+    let mut lst = vec![];
+    for l in lcls {
+        let name = sexp_list_nth_as_string(&l, 1)?;
+        let id = sexp_list_nth_as_usize(&l, 3)?;
+        let value = sexp_list_nth_as_string(&l, 5)?;
+        lst.push(FrameLocal { name, id, value });
+    }
     Ok(lst)
 }
 
@@ -330,7 +367,23 @@ pub fn parse_slynk_answer(m: &str, ccb: Option<&ContinuationCallback>) -> SlynkA
                 };
                 let frames = match &children[5] {
                     Sexp::List(frames) => {
-                        frames.iter().map(|f| f.to_string()).collect()
+                        let mut lst = vec![];
+                        for f in frames {
+                            let ix = sexp_list_nth_as_usize(f, 0).unwrap();
+                            let label = sexp_list_nth_as_string(f, 1).unwrap();
+                            let restartable = match sexp_list_nth_or_none(f, 2).unwrap() {
+                                Some(s) => {
+                                    sexp_list_nth_as_bool(s, 1).unwrap()
+                                },
+                                _ => false
+                            };
+                            lst.push(DebugFrame {
+                                ix,
+                                label,
+                                restartable
+                            });
+                        }
+                        lst
                     },
                     _ => panic!("Should be list")
                 };

@@ -100,6 +100,7 @@ fn main() {
 
             describe_symbol,
             apropos_symbol,
+            frame_locals,
 
             get_all_packages,
             get_symbols_in_package,
@@ -347,6 +348,12 @@ fn apropos_symbol(symbol: String, continuation: usize) -> BackendResult<()> {
     REPL.lock()
         .unwrap()
         .apropos_symbol(symbol, continuation)
+}
+#[tauri::command]
+fn frame_locals(ix: usize, thread: usize, continuation: usize) -> BackendResult<()> {
+    REPL.lock()
+        .unwrap()
+        .frame_locals(ix, thread, continuation)
 }
 
 //

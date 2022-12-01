@@ -94,7 +94,12 @@ window.backend = new function() {
         invoke('apropos_symbol', { symbol: symbol, continuation: continuation });
         let p2 = createPendingPromise(continuation);
         return Promise.all([p1, p2]);
-    }
+    };
+    this.frameLocals = (ix, thread) => {
+        let continuation = cont();
+        invoke('frame_locals', { ix: ix, thread: thread, continuation: continuation });
+        return createPendingPromise(continuation);
+    };
 
     //
     // state

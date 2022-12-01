@@ -227,6 +227,8 @@ impl REPL {
                                         sender_tcp.send(SlynkAnswer::ResolvePending { continuation: *cont, data: serde_json::to_string(&parse_describe(value.clone()).unwrap()).unwrap() }).expect("Could not send"),
                                     ContinuationCallback::DisplayApropos(cont) => 
                                         sender_tcp.send(SlynkAnswer::ResolvePending { continuation: *cont, data: serde_json::to_string(&parse_apropos(value.clone()).unwrap()).unwrap() }).expect("Could not send"),
+                                    ContinuationCallback::DisplayFrameLocals(cont) => 
+                                        sender_tcp.send(SlynkAnswer::ResolvePending { continuation: *cont, data: serde_json::to_string(&parse_frame_locals(value).unwrap()).unwrap() }).expect("Could not send"),
                                      _ => ()
                                 }
                                 handled = true;
@@ -310,6 +312,10 @@ impl REPL {
                         },
                         SlynkMessage::InvokeNthRestart(level, n, thread) => {
                             emacs_rex_thread(&format!("(slynk:invoke-nth-restart-for-emacs {} {})", level , n), &package_handle.lock().unwrap(), *thread, &continuation)
+                        },
+                        SlynkMessage::FrameLocals(ix, thread, cont) => {
+                            pending_handle_in.lock().unwrap().insert(continuation, ContinuationCallback::DisplayFrameLocals(*cont));
+                            emacs_rex_thread(&format!("(slynk:frame-locals-and-catch-tags {})", ix), &package_handle.lock().unwrap(), *thread, &continuation)
                         },
                         SlynkMessage::EmacsReturn(form, thread, tag) => {
                             emacs_return(form, *thread, tag)
@@ -470,7 +476,10 @@ impl REPL {
         self.slynk_repl_sender.send(SlynkMessage::InvokeNthRestart(level, n, thread))?;
         Ok(())
     }
-
+    pub fn frame_locals(&self, ix: usize, thread: usize, continuation: usize) -> BackendResult<()> {
+        self.slynk_repl_sender.send(SlynkMessage::FrameLocals(ix, thread, continuation))?;
+        Ok(())
+    }
     pub fn list_all_packages(&self, continuation: usize) -> BackendResult<()> {
         self.slynk_repl_sender.send(SlynkMessage::ListAllPackages(continuation))?;
         Ok(())
@@ -479,7 +488,6 @@ impl REPL {
         self.slynk_repl_sender.send(SlynkMessage::ListSymbolsInPackage{ package, vars, functions, classes, macros, cont: continuation, })?;
         Ok(())
     }
-
     pub fn describe_symbol(&self, symbol: String, continuation: usize) -> BackendResult<()> {
         self.slynk_repl_sender.send(SlynkMessage::DescribeForSymbolInfo { symbol, cont: continuation  })?;
         Ok(())
