@@ -206,7 +206,7 @@ button:not(.disabled):hover .btn-dropdown-wrapper {
 code {
   background: #423a35;
   padding: 5px;
-  border: 1px solid #5a4735;
+  /* border: 1px solid #5a4735; */
 }
 
 .link-like {
@@ -754,8 +754,10 @@ body.resizing  {
   padding: 15px;
   background: #302b24;
   z-index: 5;
-  /* border: 1px solid #483d33; */
   border-radius: 5px;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
 }
 .debug-overlay__restart, .debug-overlay__frame {
   display: flex;

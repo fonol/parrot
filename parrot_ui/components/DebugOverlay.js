@@ -24,7 +24,7 @@ export class DebugOverlay extends Component {
             s.debugInfo.frames[ix].frameLocals = JSON.parse(l);
             return s;
           })
-        });
+        }).catch(window.notifications.error);
 
     }
 
@@ -53,31 +53,38 @@ export class DebugOverlay extends Component {
                     </div>
                 `)}
                 <h4 class="text-secondary">Backtrace:</h4>
-                ${(i.frames||[]).map((f) => html`
-                    <div class="debug-overlay__frame" onClick=${() => this.toggleFrameLocals(f.ix)}>
-                      <div>${f.ix}</div>
-                      <div>
-                        ${f.label}
-                        ${f.frameLocals && f.frameLocals.length > 0 && html`
-                          <h5 class="mt-10 mb-5 text-secondary">Frame Locals:</h5>
-                          <div class="overflow-auto mh-200px">
-                            ${f.frameLocals.map(l => html`
-                              <div class="flex-row flex-middle">
-                                <div>
-                                  ${l.name}
-                                </div>
-                                <div class="ml-5">
-                                  = <span class="text-active">${l.value}</span>
-                                </div>
-                              </div>
-                            `)}
-                          </div>
-                        `}
+                <div class="overflow-auto flex-1 mb-10">
+                  ${(i.frames||[]).map((f) => html`
+                      <div class="debug-overlay__frame" onClick=${() => this.toggleFrameLocals(f.ix)}>
+                        <div>${f.ix}</div>
+                        <div>
+                          <div>${f.label}</div>
+                          ${f.frameLocals && f.frameLocals.length > 0 && html`
+                            <h5 class="mt-10 mb-5 text-secondary">Frame Locals:</h5>
+                            <div class="overflow-auto mh-200px">
+                              <table class="mb-5">
+                              ${f.frameLocals.map(l => html`
+                                <tr>
+                                  <td>
+                                    <code>
+                                      ${l.name}
+                                    </code>
+                                  </td>
+                                  <td>
+                                    <div class="flex-row flex-center mr-5 ml-5">=</div>
+                                  </td>
+                                  <td>
+                                    <code class="text-active">${l.value}</code>
+                                  </td>
+                                </tr>
+                              `)}
+                              </table>
+                            </div>
+                          `}
+                        </div>
                       </div>
-                    </div>
-                `)}
-
-
+                  `)}
+                </div>
                 <div class="debug-overlay__bottom-bar">Thread: ${i.thread}, Level: ${i.level}</div>
             </div>
         `;
