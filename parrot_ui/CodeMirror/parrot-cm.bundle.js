@@ -26722,6 +26722,9 @@
          });
        }
      }
+     km.push( { key: "Backspace", run: deleteCharBackward, shift: deleteCharBackward });
+     km.push({ key: "Delete", run: deleteCharForward });
+
      let keymaps = [
        // ...defaultKeymap,
        ...km
@@ -26783,9 +26786,6 @@
        create() { return Decoration.none },
        update(value, transaction) {
          value = value.map(transaction.changes);
-         // if (transaction.effects.length) {
-         //   value = value.update({ filter: (from, to, range) => { return false;  } })
-         // }
          for (let effect of transaction.effects) {
            if (effect.is(HighlightEffect))
              value = value.update({ add: effect.value, sort: true });

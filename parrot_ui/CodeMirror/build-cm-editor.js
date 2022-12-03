@@ -10,7 +10,7 @@ import {
 } from "@codemirror/view"
 
 import {indentOnInput, bracketMatching, HighlightStyle, syntaxHighlighting} from "@codemirror/language"
-import {defaultKeymap, history, indentWithTab} from "@codemirror/commands"
+import {defaultKeymap, history, indentWithTab, deleteCharBackward, deleteCharForward} from "@codemirror/commands"
 import {closeBrackets} from "@codemirror/autocomplete"
 import {SearchCursor, RegExpCursor} from "@codemirror/search"
 // import {foldGutter, foldKeymap} from "@codemirror/fold"
@@ -109,6 +109,9 @@ window.initEditor = (el, config, keyMap, updateCb) => {
       });
     }
   }
+  km.push( { key: "Backspace", run: deleteCharBackward, shift: deleteCharBackward });
+  km.push({ key: "Delete", run: deleteCharForward });
+
   let keymaps = [
     // ...defaultKeymap,
     ...km
