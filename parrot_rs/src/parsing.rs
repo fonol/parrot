@@ -200,9 +200,12 @@ pub fn parse_apropos(return_value: String) -> BackendResult<String> {
     Ok(lst)
 }
 pub fn parse_frame_locals(return_value: &str) -> BackendResult<Vec<FrameLocal>> {
-    let sexp = sexp::parse(return_value).unwrap();
-    let lcls = sexp_list_nth_as_list(&sexp, 0).unwrap();
+    let sexp = clean_and_parse_sexp(return_value)?;
     let mut lst = vec![];
+    if sexp_list_nth_or_nil(&sexp, 0)?.is_none() {
+        return Ok(lst);
+    }
+    let lcls = sexp_list_nth_as_list(&sexp, 0).unwrap();
     for l in lcls {
         let name = sexp_list_nth_as_string(&l, 1)?;
         let id = sexp_list_nth_as_usize(&l, 3)?;
@@ -321,7 +324,7 @@ pub fn parse_slynk_answer(m: &str, ccb: Option<&ContinuationCallback>) -> SlynkA
         } else {
             SlynkAnswer::Return {
                 continuation,
-                value: value.replace("\\\"", "\""),
+                value: value,
                 status: status
             }
         }
