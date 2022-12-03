@@ -1,16 +1,17 @@
-import { html, Component } from '../preact-bundle.js';
-import { createRef } from '../preact-10.7.js';
+import { html, Component } from '../../preact-bundle.js';
+import { createRef } from '../../preact-10.7.js';
 import {
     getSurroundingTopLevelExpr,
     getSymbolUnderOrBeforeCursor,
     getLeafNameWithExtension,
     getPrecedingExpr,
     padStartEnd
-} from '../scripts/utils.js';
+} from '../../scripts/utils.js';
 import {
     getSlurpForwardTarget,
     getSlurpBackwardTarget,
-} from '../scripts/paredit.js';
+} from '../../scripts/paredit.js';
+import { EditorSearchReplaceBox } from './EditorSearchReplaceBox.js';
 
 
 
@@ -20,8 +21,17 @@ export class Editor extends Component {
       this.state = { 
         path: props.path,
         content: '',
+
+        // symbol info on hover
         symbolInfo: null,
-        symbolInfoTab: 'describe'
+        symbolInfoTab: 'describe',
+
+        // search / replace 
+        showSearch: false,
+        searchInitMode: 'search',
+        noOfSearchMatches: 0,
+        matchActive: 0
+
       };
       this.loading = false;
       this.editorInitialized = false;
@@ -189,6 +199,8 @@ export class Editor extends Component {
             map[slurpBackwardShortcut] = this.slurpBackward.bind(this);
         }
 
+        map["Ctrl-f"] = this.toggleSearch.bind(this);
+        map["Ctrl-h"] = this.toggleReplace.bind(this);
 
 
         if (!this.editor) {
@@ -487,12 +499,24 @@ export class Editor extends Component {
      * Vertically center the editor around the given line.
      */
     centerLine(pos) {
-        // todo: this feels like a hack
-        this.editor.scrollDOM.scrollTop = 0;
-        let coords = this.editor.coordsAtPos(pos);
-        let box = this.editor.scrollDOM.getBoundingClientRect();
-        let h = box.height;
-        this.editor.scrollDOM.scrollTop = coords.top - box.top - h / 2;
+
+        this.editor.dispatch({
+            selection: { 
+              anchor: pos
+            },
+            scrollIntoView: true,
+          });
+
+        // // todo: this feels like a hack
+        // this.editor.scrollDOM.scrollTop = 0;
+        // let coords = this.editor.coordsAtPos(pos);
+        // if (coords) {
+        //     let box = this.editor.scrollDOM.getBoundingClientRect();
+        //     let h = box.height;
+        //     this.editor.scrollDOM.scrollTop = coords.top - box.top - h / 2;
+        // } else {
+        //     notifications.error("Could not move cursor to pos: " + pos);
+        // }
     }
     /* This is called anytime the editor's content changed */
     onCodemirrorUpdate() {
@@ -512,6 +536,114 @@ export class Editor extends Component {
             }
         }, 1000);
     }
+    //
+    // Search / Replace
+    //
+    onSearchInputChanged(search, regex, ignoreCase) {
+        let cursor;
+        if (search && search.length) {
+            cursor = this.getSearchCursor(search, regex, ignoreCase);
+            let matches = this.searchMatches(cursor);
+            this.searchCursor = this.getSearchCursor(search, regex, ignoreCase);
+            this.currentSearch = { search, regex, ignoreCase };
+            this.setState({ noOfSearchMatches: matches.length, matchActive: 0 });
+            if (matches.length) {
+                let effects = [];
+                effects.push(ClearHighlightEffect.of([HighlightDecoration.range(0, 1)]));
+                effects = effects.concat(matches.map(m => HighlightEffect.of([HighlightDecoration.range(m.from, m.to)])));
+                this.editor.dispatch({
+                    effects: effects
+                });
+                this.moveSearchCursor();
+            } else {
+                this.setState({ noOfSearchMatches: 0, matchActive: 0 });
+                this.clearSecondaryHighlights();
+                this.clearActiveHighlights();
+                this.forceUpdate();
+            }
+
+            // todo
+            // this.editor.setSelection(cursor.value.from, cursor.value.to);
+        } else {
+            this.setState({ noOfSearchMatches: 0, matchActive: 0 });
+            this.clearSecondaryHighlights();
+            this.clearActiveHighlights();
+            this.forceUpdate();
+        }
+    }
+    getSearchCursor(search, regex, ignoreCase) {
+        this.setState({ matchActive: 0 });
+
+        if (regex) {
+            return new RegExpCursor(this.editor.state.doc, search, {ignoreCase: ignoreCase}); 
+        } 
+        let normalizeFn = ignoreCase ? (t) => { return t.toLowerCase() } : (t) => { return t }; 
+        return new SearchCursor(this.editor.state.doc, search, 0, this.editor.state.doc.length, normalizeFn); 
+    }
+    searchMatches(cursor) {
+        let matches = [];
+        while (!cursor.done) {
+            cursor.next();
+            if (!cursor.done && cursor.value.from !== cursor.value.to) {
+                matches.push(cursor.value);
+            }
+        }
+        return matches;
+    }
+    moveSearchCursor() {
+        this.searchCursor.next();
+        if (!this.searchCursor.done) {
+            this.editor.dispatch({
+                effects: [ClearActiveHighlightEffect.of(HighlightDecoration.range(0, 1)),
+                HighlightEffect.of([HighlightActiveDecoration.range(this.searchCursor.value.from, this.searchCursor.value.to)])]
+            });
+            this.setState(s => {
+                s.matchActive = s.matchActive + 1
+                return s;
+            });
+            this.centerLine(this.searchCursor.value.from);
+            this.forceUpdate();
+        } else if (this.state.noOfSearchMatches > 0) {
+            this.searchCursor = this.getSearchCursor(this.currentSearch.search, this.currentSearch.regex, this.currentSearch.ignoreCase);
+            this.moveSearchCursor();
+        }
+
+    }
+    clearSecondaryHighlights() {
+        this.editor.dispatch({ effects: ClearHighlightEffect.of([HighlightDecoration.range(0, 1)]) });
+    }
+    clearActiveHighlights() {
+        this.editor.dispatch({ effects: ClearActiveHighlightEffect.of([HighlightDecoration.range(0, 1)]) });
+    }
+    onSearchConfirmed(search, regex, ignoreCase) {
+        if (this.searchCursor) {
+            this.moveSearchCursor();
+        }
+
+    }
+    onReplaceConfirmed(search, replace, regex, ignoreCase) {
+        // todo
+    }
+    toggleReplace() {
+        this.setState({ showSearch: !this.state.showSearch, searchInitMode: 'replace' });
+        this.forceUpdate();
+        return true;
+    }
+    toggleSearch() {
+        this.setState({ showSearch: !this.state.showSearch, searchInitMode: 'search' });
+        this.forceUpdate();
+        return true;
+    }
+    closeSearch() {
+        this.setState({ showSearch: false });
+        this.clearSecondaryHighlights();
+        this.clearActiveHighlights();
+        this.forceUpdate();
+        this.editor.focus();
+    }
+    //
+    // End Search / Replace
+    //
   
     async save() {
         if (!this.editingExistingFile) {
@@ -520,7 +652,8 @@ export class Editor extends Component {
         let content = this.getValue();
         if (content !== this.state.content) {
             this.originalValue = content;
-            return window.backend.saveFileContent(this.state.path, content)
+            return window.backend
+                .saveFileContent(this.state.path, content)
                 .then($bus.trigger('file-saved', this.state.path));
         }
         return Promise.resolve();
@@ -534,6 +667,19 @@ export class Editor extends Component {
                     </div>
                 </div>
                 <div class="h-100" ref=${this.editorTarget}></div>
+                <div class="editor__search-replace-box-wr">
+                    ${this.state.showSearch && html`
+                        <${EditorSearchReplaceBox}
+                            initMode=${this.state.searchInitMode}
+                            onSearchInputChanged=${this.onSearchInputChanged.bind(this)}
+                            onSearch=${this.onSearchConfirmed.bind(this)}
+                            onReplace=${this.onReplaceConfirmed.bind(this)}
+                            onClose=${this.closeSearch.bind(this)}
+                            matches=${this.state.noOfSearchMatches}
+                            matchActive=${this.state.matchActive}
+                            ></${EditorSearchReplaceBox}>
+                    `}
+                </div>
                 <div ref=${this.symbolInfo} class="cm-symbol-info"
                     onmouseenter=${this.onSymbolInfoMouseEnter.bind(this)}
                     onmouseleave=${this.onSymbolInfoMouseLeave.bind(this)}>

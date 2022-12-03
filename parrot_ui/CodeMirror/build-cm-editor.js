@@ -1,17 +1,18 @@
 import { EditorView } from "codemirror"
-import { EditorState} from "@codemirror/state"
+import { EditorState, StateEffect, StateField} from "@codemirror/state"
 import { vim, Vim } from "@replit/codemirror-vim"
 import {
   keymap,
   highlightSpecialChars, drawSelection, rectangularSelection,
   dropCursor,
-  lineNumbers
+  lineNumbers,
+  Decoration
 } from "@codemirror/view"
 
 import {indentOnInput, bracketMatching, HighlightStyle, syntaxHighlighting} from "@codemirror/language"
 import {defaultKeymap, history, indentWithTab} from "@codemirror/commands"
 import {closeBrackets} from "@codemirror/autocomplete"
-
+import {SearchCursor, RegExpCursor} from "@codemirror/search"
 // import {foldGutter, foldKeymap} from "@codemirror/fold"
 // import {searchKeymap, highlightSelectionMatches} from "@codemirror/search"
 // import {autocompletion, completionKeymap} from "@codemirror/autocomplete"
@@ -87,7 +88,8 @@ function commonLisp() {
     return new LanguageSupport(CommonLisp);
 }
 
-
+window.SearchCursor = SearchCursor;
+window.RegExpCursor = RegExpCursor;
 
 
 window.initEditor = (el, config, keyMap, updateCb) => {
@@ -153,6 +155,55 @@ window.initEditor = (el, config, keyMap, updateCb) => {
   if (vimMode) {
     extensions.push(vim());
   }
+
+  //
+  //
+  // Search highlighting
+  //
+  //
+  window.HighlightEffect = StateEffect.define(); 
+  window.ClearHighlightEffect = StateEffect.define(); 
+  window.ClearActiveHighlightEffect = StateEffect.define(); 
+
+  // define a new field that will be attached to your view state as an extension, update will be called at each editor's change
+  const highlightExt = StateField.define({
+    create() { return Decoration.none },
+    update(value, transaction) {
+      value = value.map(transaction.changes)
+      for (let effect of transaction.effects) {
+        if (effect.is(HighlightEffect))
+          value = value.update({ add: effect.value, sort: true })
+        else if (effect.is(ClearHighlightEffect)) 
+          value = value.update({ filter: (from, to, v) => { return v.class !== 'cm-search-hl';  } })
+        else if (effect.is(ClearActiveHighlightEffect)) 
+          value = value.update({ filter: (from, to, v) => { return v.class !== 'cm-search-hl--active'  } })
+      }
+  
+      return value
+    },
+    provide: f => EditorView.decorations.from(f)
+  });
+  
+  window.HighlightDecoration = Decoration.mark({
+    class: 'cm-search-hl'
+  });
+  window.HighlightActiveDecoration = Decoration.mark({
+    class: 'cm-search-hl--active'
+  });
+  extensions.push(highlightExt);
+
+  //
+  //
+  // End Search highlighting
+  //
+  //
+  
+
+  // 
+  //
+  // Editor instance
+  //
+  //
 
   let editor = new EditorView({
     state: EditorState.create({

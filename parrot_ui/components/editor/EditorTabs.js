@@ -1,6 +1,6 @@
-import { html, Component } from '../preact-bundle.js';
-import { createRef } from '../preact-10.7.js';
-import { getLeafNameWithoutExtension, normalizePath } from '../scripts/utils.js';
+import { html, Component } from '../../preact-bundle.js';
+import { createRef } from '../../preact-10.7.js';
+import { getLeafNameWithoutExtension, normalizePath } from '../../scripts/utils.js';
 import { Editor } from './Editor.js';
 
 export class EditorTabs extends Component {

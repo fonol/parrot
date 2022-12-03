@@ -97,5 +97,19 @@
 }
 /* End Symbol info on hover */
 
+.cm-search-hl {
+  background-color: #664e22;
+  /* background-color: #ffb01f; */
+}
+.cm-search-hl > * {
+  color: white;
+  /* color: black !important; */
+}
+.cm-search-hl--active, .cm-search-hl--active > * {
+  background-color: #ffb01f !important;
+}
+.cm-search-hl--active > * {
+  color: black !important;
+}
 
 /* End CodeMirror */

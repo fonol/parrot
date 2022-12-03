@@ -1,6 +1,6 @@
 import { html, Component } from '../preact-bundle.js'
 import { createRef } from '../preact-10.7.js';
-import { EditorTabs } from './EditorTabs.js';
+import { EditorTabs } from './editor/EditorTabs.js';
 import { ConfigDiagnosticsDialog } from './ConfigDiagnosticsDialog.js';
 import { FileFolderTree } from './FileFolderTree.js';
 import { getLeafNameWithoutExtension } from '../scripts/utils.js';

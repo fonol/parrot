@@ -95,6 +95,8 @@ input {
 input::placeholder {
   color: var(--text-secondary-color);
   opacity: 0.8;
+  vertical-align: middle;
+  font-size: 16px;
   font-family: 'Rubik' !important;
 }
 input:disabled, input.disabled {
@@ -735,7 +737,6 @@ code {
   height: 100%;
   width: 2px;
   background: #3c3026;
-  
 }
 .editor-term-sep:hover {
   cursor: ew-resize;
@@ -753,7 +754,7 @@ body.resizing  {
   width: 420px;
   padding: 15px;
   background: #302b24;
-  z-index: 5;
+  z-index: 15;
   border-radius: 5px;
   display: flex;
   flex-direction: column;
@@ -871,3 +872,29 @@ body.resizing  {
   color: var(--active-secondary-color);
 }
 /* End Checkbox */
+/* EditorSearchReplaceBox */
+.editor__search-replace-box-wr {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  z-index: 10;
+}
+.editor__search-replace-box {
+  background-color: var(--pane-bg);
+  padding: 5px;
+  display: flex;
+  flex-direction: row;
+  align-items: stretch;
+  font-family: 'Rubik';
+}
+.editor__search-replace-box input {
+  font-size: 14px;
+  width: 300px;
+}
+.editor__search-replace-box__mode-btn {
+  height: 100%;
+  background-color: var(--pane-bg);
+  margin-right: 3px;
+  border: none;
+}
+/* End EditorSearchReplaceBox */
