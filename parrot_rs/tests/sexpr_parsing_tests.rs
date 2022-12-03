@@ -7,7 +7,18 @@ use parrot_rs::parsing::*;
 fn parse_wellformed_sexp_should_not_fail() {
     assert!(clean_and_parse_sexp("(a)").is_ok());
     assert!(clean_and_parse_sexp("(a b)").is_ok());
-    assert!(clean_and_parse_sexp("(a b)").is_ok());
+    assert!(clean_and_parse_sexp("(:a :b)").is_ok());
+    assert!(clean_and_parse_sexp("(:a :b \"test\")").is_ok());
+}
+
+#[test]
+fn parse_sexp_with_quotes_in_str() {
+    assert!(clean_and_parse_sexp("(\"\\\"test\\\"\")").is_ok());
+    assert!(clean_and_parse_sexp("(\"\\\"\\\"test\\\"\")").is_ok());
+    let r = clean_and_parse_sexp("(\"\\\"test\\\"\")").unwrap();
+    assert!(sexp_list_nth_as_string(&r, 0).is_ok());
+    assert!(sexp_list_nth_as_string(&r, 0).unwrap().starts_with("\""));
+    assert!(sexp_list_nth_as_string(&r, 0).unwrap().ends_with("\""));
 }
 
 #[test]
