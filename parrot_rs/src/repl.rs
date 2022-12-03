@@ -14,7 +14,7 @@ use std::time::Duration;
 use os_pipe::{self, PipeWriter};
 use utf8_chars::BufReadCharsExt;
 use crate::models::*;
-use crate::text::{trim_quotes, unescape_quotes, escape_quotes, quote};
+use crate::text::{trim_quotes, unescape_quotes, escape_quotes, quote, escape_form};
 use crate::{BackendResult, BackendError};
 use lazy_static::lazy_static;
 use sexp::{self, Atom, Sexp};
@@ -286,11 +286,11 @@ impl REPL {
                     let message_body =  match &message_to_send {
 
                         SlynkMessage::Eval(form)  => {
-                            let escaped = escape_quotes(form);
+                            let escaped = escape_form(form);
                             emacs_channel_send(&format!("(:process \"{}\")", escaped), 1)
                         },
                         SlynkMessage::InteractiveEval(form) => {
-                            let escaped = escape_quotes(form);
+                            let escaped = escape_form(form);
                             pending_handle_in.lock().unwrap().insert(continuation, ContinuationCallback::PrintReturnValue(PrintKind::Notification));
                             emacs_rex(&format!("(slynk:interactive-eval \"{}\")", escaped), &package_handle.lock().unwrap(), &continuation)
                         },

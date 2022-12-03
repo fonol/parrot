@@ -8,6 +8,7 @@ use std::sync::Mutex;
 
 lazy_static! {
     static ref RE_TOKENIZE: Regex = Regex::new(r#"(?i)[ /\\,_$'";:.+*`&()?!<>-]"#).unwrap();
+    static ref RE_FORM_ESCAPE: Regex = Regex::new(r#"(["\\])"#).unwrap();
 }
 
 //
@@ -16,6 +17,9 @@ lazy_static! {
 
 pub fn escape_quotes(text: &str) -> String {
     text.replace("\"", "\\\"")
+}
+pub fn escape_form(text: &str) -> String {
+    RE_FORM_ESCAPE.replace_all(text, "\\$1").to_string()
 }
 
 pub fn tokenize_lowercase(text: &str) -> Vec<u64> {
