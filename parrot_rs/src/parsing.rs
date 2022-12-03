@@ -191,12 +191,12 @@ pub fn parse_symbol_list(return_value: String) -> BackendResult<Vec<String>> {
 
 pub fn parse_describe(return_value: String) -> BackendResult<String> {
     let sexp = sexp::parse(&return_value).unwrap();
-    let desc = sexp_list_nth_as_string(&sexp, 0).unwrap();
+    let desc = sexp_list_nth_as_string(&sexp, 0)?;
     Ok(desc)
 }
 pub fn parse_apropos(return_value: String) -> BackendResult<String> {
     let sexp = sexp::parse(&return_value).unwrap();
-    let lst = sexp_list_nth_as_string(&sexp, 0).unwrap();
+    let lst = sexp_list_nth_as_string(&sexp, 0)?;
     Ok(lst)
 }
 pub fn parse_frame_locals(return_value: &str) -> BackendResult<Vec<FrameLocal>> {
