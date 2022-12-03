@@ -12,9 +12,6 @@ window.TCOLORS = {
     PROMPT: '\x1b[38;5;180m',
     ERROR: '\x1b[38;5;167m',
     IMPORTANT: '\x1b[48;5;56m',
-    // BG_FORM: '\x1b[48;5;8m'
-    // BG_FORM: '\x1b[48;5;52m',
-    // BG_FORM: '\x1b[48;5;203m',
     BG_FORM: '\x1b[48;5;180m',
 }
 
@@ -28,6 +25,8 @@ export class REPL extends Component {
       this.termPrompt = 'CL-USER>';
       this.terminalWrapper = createRef();
       this.elevel = 0;
+      this.commandHistory = [];
+      this.commandHistoryIx = 0;
 
       if (typeof (this.props.onRestart) !== 'function') {
           console.warn("REPL: missing onRestart prop");
@@ -87,7 +86,9 @@ export class REPL extends Component {
             let xCleaned = x - self.promptLen()- 1;
             let hasInput = self.state.termInput.length > 0;
             if (ev.key === '\r') {
+                self.commandHistoryIx = 0;
                 if (self.state.termInput && self.state.termInput.trim().length > 0) {
+                    self.addToCommandHistory(self.state.termInput);
                     window.backend.replEval(self.state.termInput);
                 }
                 self.setState({ termInput: '' });
@@ -112,11 +113,21 @@ export class REPL extends Component {
                 self.term.write(ev.key);
             }
             else if (ev.domEvent.key === 'ArrowUp') {
-                // todo: command history
+                let prevCmd = self.getPrevCommand();
+                if (prevCmd) {
+                    self.clearCurrentLine();
+                    self.term.promptWithoutNewline();
+                    self.term.write(prevCmd);
+                }
                 return true;
             }
             else if (ev.domEvent.key === 'ArrowDown') {
-                // todo: command history
+                let nextCmd = self.getNextCommand();
+                if (nextCmd) {
+                    self.clearCurrentLine();
+                    self.term.promptWithoutNewline();
+                    self.term.write(nextCmd);
+                }
                 return true;
             }
             // del
@@ -156,6 +167,13 @@ export class REPL extends Component {
                 self.term.write(`\r\n${TCOLORS.ERROR}[${self.elevel}]\x1b[0m ${TCOLORS.PROMPT}${self.termPrompt}\x1b[0m `);
             } else {
                 self.term.write(`\r\n${TCOLORS.PROMPT}${self.termPrompt}\x1b[0m `);
+            }
+        };
+        this.term.promptWithoutNewline = function () {
+            if (self.elevel > 0) {
+                self.term.write(`${TCOLORS.ERROR}[${self.elevel}]\x1b[0m ${TCOLORS.PROMPT}${self.termPrompt}\x1b[0m `);
+            } else {
+                self.term.write(`${TCOLORS.PROMPT}${self.termPrompt}\x1b[0m `);
             }
         };
         this.printWelcome();
@@ -250,6 +268,33 @@ export class REPL extends Component {
         this.termPrompt = newPrompt.trim() + ">";
         this.term.write('\x1b[2K\r');
         this.term.prompt();
+    }
+    addToCommandHistory(cmd) {
+        if (this.commandHistory.includes(cmd)) {
+            this.commandHistory.splice(this.commandHistory.indexOf(cmd), 1);
+        }
+        this.commandHistory.push(cmd);
+        if (this.commandHistory.length > 50) {
+            this.commandHistory.splice(0, 1);
+        }
+    }
+    getPrevCommand() {
+        if (this.commandHistory.length && this.commandHistoryIx < this.commandHistory.length) {
+            this.commandHistoryIx++;
+            let ix = this.commandHistory.length - this.commandHistoryIx;
+            let cmd = this.commandHistory[ix];
+            return cmd;
+        }
+        return null;
+    }
+    getNextCommand() {
+        if (this.commandHistory.length && this.commandHistoryIx > 1) {
+            this.commandHistoryIx--;
+            let ix = this.commandHistory.length  - this.commandHistoryIx;
+            let cmd = this.commandHistory[ix];
+            return cmd;
+        }
+        return null;
     }
 
 
