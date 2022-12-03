@@ -48,8 +48,10 @@ export class SBCLOutputDialog extends Component {
                         <div class="modal-header">
                            SBCL Process 
                         </div>
-                        <div class="modal-body overflow-auto flex-col" style="max-height: 700px; max-width: 1000px">
-                            <pre class="m-0">${this.state.text}</pre>
+                        <div class="modal-body overflow-hidden flex-col" style="max-height: 700px; max-width: 1000px">
+                            <div class="overflow-auto flex-1 p-10">
+                                <pre class="m-0">${this.state.text}</pre>
+                            </div>
                         </div>
                         <div class="modal-footer flex-row flex-between flex-center">
                             <button onClick=${this.refresh.bind(this)}>Refresh</button>
