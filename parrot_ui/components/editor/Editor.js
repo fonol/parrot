@@ -435,9 +435,9 @@ export class Editor extends Component {
     }
     onSymbolHover(e) {
         let node = document.elementFromPoint(e.clientX, e.clientY) 
-        if (node && node.className.startsWith('ͼ')) {
-            let nodeText = node.innerText;
-            // todo: * * around global vars is not included here
+        if (node && node.className && nade.className.startsWith('ͼ')) {
+            let nadeText = nade.innerText;
+            // tado: * * around global vars is not included here
 
             if (!nodeText.includes(' ') && nodeText !== this._symbolHover) {
 
