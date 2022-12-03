@@ -143,7 +143,7 @@ export class REPL extends Component {
                 }
             } else {
               if (printable) {
-                let newInp = [self.state.termInput.slice(0, x), ev.key, self.state.termInput.slice(x)].join('');
+                let newInp = [self.state.termInput.slice(0, xCleaned), ev.key, self.state.termInput.slice(xCleaned)].join('');
                 self.term.write('\x9B1@');
                 self.setState({ termInput: newInp });
                 self.term.write(ev.key);
