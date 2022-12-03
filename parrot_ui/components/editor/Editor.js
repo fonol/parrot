@@ -206,20 +206,6 @@ export class Editor extends Component {
         if (!this.editor) {
             this.editorTarget.current.innerHTML = '';
             this.editor = window.initEditor(this.editorTarget.current, editorConf, map, this.onCodemirrorUpdate.bind(this));
-            // this.editor = window.CodeMirror.fromTextArea(this.editorTarget.current, {
-            //     mode:  'commonlisp',
-            //     styleActiveLine: true,
-            //     lineNumbers: showLineNumbers,
-            //     gutter: showLineNumbers,
-            //     indentUnit: 4,
-            //     indentWithTabs: false,
-            //     keyMap: vimMode ? 'vim': 'default'
-            //     // extraKeys: { Tab: 'indentMore', Enter: this.onEnter.bind(this), Up: this.onArrowUp.bind(this), Down: this.onArrowDown.bind(this) }
-            // });
-            // this.editor.refresh();
-            // let self = this;
-            // self.editor.on("cursorActivity", self.onCodeMirrorCursorActivity.bind(self));
-            // self.editor.on("blur", self.onCodemirrorBlur.bind(self));
         }
 
         // fill value
@@ -228,6 +214,9 @@ export class Editor extends Component {
         });
 
         this.editor.focus()
+        if (this.state.showSearch) {
+            this.onSearchInputChanged(this.currentSearch.search, this.currentSearch.regex, this.currentSearch.ignoreCase);
+        }
         this.editorInitialized = true;
     }
     posToOffset({line, ch}) {
