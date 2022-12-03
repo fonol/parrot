@@ -163,7 +163,7 @@ pub fn get_continuation(return_value: &str) -> Option<usize> {
 /// Parse the list given by (list-all-packages)
 /// 
 pub fn parse_package_list(list: &str) -> BackendResult<Vec<String>> {
-    let re = Regex::new("#<PACKAGE \"(?P<name>.+?)\">").unwrap();
+    let re = Regex::new("#<PACKAGE \\\\\"(?P<name>.+?)\\\\\">").unwrap();
     let pnames = re.captures_iter(list)
         .map(|c| c.name("name").unwrap().as_str().to_string())
         .sorted()
