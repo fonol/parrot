@@ -774,7 +774,8 @@ body.resizing  {
 .debug-overlay__restart > div:nth-child(1),
 .debug-overlay__frame > div:nth-child(1)
  {
-  flex: 0 0 40px;
+  flex: 0 0 30px;
+  padding: 5px 0 5px 5px;
   color: var(--text-secondary-color);
 }
 .debug-overlay__restart > div:nth-child(2) {
@@ -785,6 +786,7 @@ body.resizing  {
 }
 .debug-overlay__frame > div:nth-child(2) {
   flex: 1;
+  user-select: none;
 }
 .debug-overlay__bottom-bar {
   position: absolute;

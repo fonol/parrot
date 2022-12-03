@@ -18,6 +18,13 @@ export class DebugOverlay extends Component {
     }
     toggleFrameLocals(ix) {
       let self = this;
+      if (self.state.debugInfo.frames[ix].frameLocals) {
+        self.setState(s => {
+          s.debugInfo.frames[ix].frameLocals = null;
+          return s;
+        });
+        return;
+      }
       backend.frameLocals(ix, self.state.debugInfo.thread)
         .then(l => {
           self.setState(s => {
@@ -59,27 +66,32 @@ export class DebugOverlay extends Component {
                         <div>${f.ix}</div>
                         <div>
                           <div>${f.label}</div>
-                          ${f.frameLocals && f.frameLocals.length > 0 && html`
+                          ${f.frameLocals && html`
                             <h5 class="mt-10 mb-5 text-secondary">Frame Locals:</h5>
-                            <div class="overflow-auto mh-200px">
-                              <table class="mb-5">
-                              ${f.frameLocals.map(l => html`
-                                <tr>
-                                  <td>
-                                    <code>
-                                      ${l.name}
-                                    </code>
-                                  </td>
-                                  <td>
-                                    <div class="flex-row flex-center mr-5 ml-5">=</div>
-                                  </td>
-                                  <td>
-                                    <code class="text-active">${l.value}</code>
-                                  </td>
-                                </tr>
-                              `)}
-                              </table>
-                            </div>
+                            ${f.frameLocals.length > 0 && html`
+                              <div class="overflow-auto mh-200px">
+                                <table class="mb-5">
+                                ${f.frameLocals.map(l => html`
+                                  <tr>
+                                    <td>
+                                      <code>
+                                        ${l.name}
+                                      </code>
+                                    </td>
+                                    <td>
+                                      <div class="flex-row flex-center mr-5 ml-5">=</div>
+                                    </td>
+                                    <td>
+                                      <code class="text-active">${l.value}</code>
+                                    </td>
+                                  </tr>
+                                `)}
+                                </table>
+                              </div>
+                            `}
+                            ${f.frameLocals.length === 0 && html`
+                              <div class="text-muted">Could not find any frame locals.</div>
+                            `}
                           `}
                         </div>
                       </div>

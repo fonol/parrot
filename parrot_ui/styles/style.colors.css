@@ -3,6 +3,7 @@
 
     --c-scrollbar-fg: rgb(64, 55, 45);
     --c-scrollbar-bg: rgb(42, 38, 33);
+    --text-muted-color: #9d7455;
     --text-secondary-color: #b99477;
     --text-primary-color: hsl(34, 50%, 80%);
     --text-danger-color: #d14361;
@@ -25,6 +26,9 @@
 }
 .text-primary {
     color: var(--text-primary-color) !important;
+}
+.text-muted {
+    color: var(--text-muted-color) !important;
 }
 .text-active {
     color: var(--active-primary-color) !important;
