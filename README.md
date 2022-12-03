@@ -65,8 +65,10 @@ Plus, it is untested on Linux and Mac (I will move to Linux for development at s
 	- [x] aborts
 	- [x] set value / use value
 	- [x] retry
-	- [ ] display stacktrace
+	- [x] display stacktrace
 	- [ ] shortcuts to choose debug actions
+- [x] command history with arrow keys
+- [ ] auto-close brackets
 
 #### File tree
 
@@ -91,6 +93,7 @@ Plus, it is untested on Linux and Mac (I will move to Linux for development at s
 - [x] tabs, scratch buffer
 - [x] basic vim mode
 - [x] basic syntax highlighting
+	- [ ] better syntax highlighting
 - [x] make shortcuts from settings work
 - [ ] autocomplete / suggestions
 - [x] jump to definition
@@ -99,8 +102,8 @@ Plus, it is untested on Linux and Mac (I will move to Linux for development at s
 	- [x] handle definition outside current source files (e.g. built-in functions)
 - [ ] structured editing a la paredit
 	- [x] slurp forward / backward
+		- [ ] better handling of indentation
 	- [ ] barf forward / backward
-
 - [ ] shortcut to jump between repl and source file
 - [ ] search and replace in file
 - [ ] search in file
