@@ -117,7 +117,7 @@ impl Index {
             }
             self.index_file_names.retain(|_, v| !v.is_empty());
 
-            // 4. delete the file in documents index
+            // 3. delete the file in documents index
             let doc = self.documents.remove(&docs_id).unwrap();
             // let rel_path = to_rel_path(self.root_folder.as_ref().unwrap().as_str(), fpath.as_ref().to_str().unwrap());
             self.doc_ids.retain(|_, v| v.clone().ne(&docs_id));
