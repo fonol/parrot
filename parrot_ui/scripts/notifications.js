@@ -38,6 +38,9 @@ var notifications = new function() {
     this.error = (message) => {
         showForType('error', message);
     }
+    this.warn = (message) => {
+        showForType('warn', message);
+    }
 
     this.showFromList = (messageList, breakInMs) =>  {
         let m = messageList.shift();

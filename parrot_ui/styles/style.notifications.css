@@ -19,3 +19,8 @@
     background: #562727;
     border: 1px solid var(--c-node-red-lighter);
 }
+.notification--warn {
+    color: #f8c464;
+    background: #b05c13;
+    border: 1px solid #c56c1d;
+}
