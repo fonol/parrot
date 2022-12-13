@@ -30,7 +30,8 @@ export class Editor extends Component {
         showSearch: false,
         searchInitMode: 'search',
         noOfSearchMatches: 0,
-        matchActive: 0
+        matchActive: 0,
+        replacing: false,
 
       };
       this.loading = false;
@@ -228,6 +229,9 @@ export class Editor extends Component {
     }
     /** Current line index (starts at 1!) */
     getCurrentLine() {
+        if (!this.editor.state.selection || !this.editor.state.selection.main || !this.editor.state.selection.main.head) {
+            return -1;
+        }
         return this.editor.state.doc.lineAt(this.editor.state.selection.main.head).number;
     }
     getCurrentColumn() {
@@ -373,6 +377,13 @@ export class Editor extends Component {
 
     getCursorPosition() {
         let line = this.getCurrentLine();
+        if (line < 0) {
+            return {
+                pos: 0,
+                line: 1,
+                col: 0
+            };
+        }
         let ch = this.getCurrentColumn();
         let abs_c = ch;
 
@@ -495,22 +506,11 @@ export class Editor extends Component {
             },
             scrollIntoView: true,
           });
-
-        // // todo: this feels like a hack
-        // this.editor.scrollDOM.scrollTop = 0;
-        // let coords = this.editor.coordsAtPos(pos);
-        // if (coords) {
-        //     let box = this.editor.scrollDOM.getBoundingClientRect();
-        //     let h = box.height;
-        //     this.editor.scrollDOM.scrollTop = coords.top - box.top - h / 2;
-        // } else {
-        //     notifications.error("Could not move cursor to pos: " + pos);
-        // }
     }
     /* This is called anytime the editor's content changed */
     onCodemirrorUpdate() {
 
-        if (this.state.showSearch) {
+        if (this.state.showSearch && !this.replacing) {
             this.refreshSearchResults();
         }
         if (this.timer) {
@@ -537,7 +537,7 @@ export class Editor extends Component {
             cursor = this.getSearchCursor(search, regex, ignoreCase);
             let matches = this.searchMatches(cursor);
             this.searchCursor = this.getSearchCursor(search, regex, ignoreCase);
-            this.currentSearch = { search, regex, ignoreCase };
+            this.currentSearch = { search, regex, ignoreCase, matches };
             let matchActive;
             if (this.state.matchActive > 0 && this.state.matchActive < matches.length) {
                 matchActive = this.state.matchActive - 1;
@@ -551,7 +551,7 @@ export class Editor extends Component {
             if (matches.length) {
                 let effects = [];
                 effects.push(ClearHighlightEffect.of([HighlightDecoration.range(0, 1)]));
-                effects = effects.concat(matches.map(m => HighlightEffect.of([HighlightDecoration.range(m.from, m.to)])));
+                effects = effects.concat(matches.filter(m => m.from != m.to).map(m => HighlightEffect.of([HighlightDecoration.range(m.from, m.to)])));
                 this.editor.dispatch({
                     effects: effects
                 });
@@ -596,7 +596,9 @@ export class Editor extends Component {
         if (!this.searchCursor.done) {
             this.editor.dispatch({
                 effects: [ClearActiveHighlightEffect.of(HighlightDecoration.range(0, 1)),
-                HighlightEffect.of([HighlightActiveDecoration.range(this.searchCursor.value.from, this.searchCursor.value.to)])]
+                    HighlightEffect.of(
+                        this.searchCursor.value.from != this.searchCursor.value.to ? [HighlightActiveDecoration.range(this.searchCursor.value.from, this.searchCursor.value.to)]: []
+                    )]
             });
             this.setState(s => {
                 s.matchActive = s.matchActive + 1
@@ -608,7 +610,6 @@ export class Editor extends Component {
             this.searchCursor = this.getSearchCursor(this.currentSearch.search, this.currentSearch.regex, this.currentSearch.ignoreCase);
             this.moveSearchCursor();
         }
-
     }
     clearSecondaryHighlights() {
         this.editor.dispatch({ effects: ClearHighlightEffect.of([HighlightDecoration.range(0, 1)]) });
@@ -620,16 +621,46 @@ export class Editor extends Component {
         if (this.searchCursor) {
             this.moveSearchCursor();
         }
-
     }
     onReplaceConfirmed(search, replace, regex, ignoreCase) {
         if (!this.searchCursor || !this.searchCursor.value || this.searchCursor.value.from < 0 || this.searchCursor.value.from === this.searchCursor.value.to) {
             notifications.warn('No matches found.');
             return;
         }
-        let repls = [{ from: this.searchCursor.value.from, to: this.searchCursor.value.to, insert: replace || '' }];
-        this.editor.dispatch({ changes: repls });
-        this.refreshSearchResults();
+        if (!this.replacement) {
+            this.replacement = {
+                start: this.state.matchActive-1,
+                places: [...this.currentSearch.matches],
+                ix: this.state.matchActive-1
+            };
+        }
+        this.replacing = true;
+            let pl = this.replacement.places[this.replacement.ix];
+            let repls = [{ from: pl.from, to: pl.to, insert: replace || '' }];
+            this.editor.dispatch({ changes: repls });
+            this.replacement.ix++;
+            let nDiff = replace.length - pl.to + pl.from;
+            for (var iN = this.replacement.ix; iN < this.replacement.places.length; iN++) {
+                this.replacement.places[iN].from += nDiff;
+                this.replacement.places[iN].to += nDiff;
+            }
+            if (this.replacement.ix === this.replacement.places.length) {
+                this.replacement.ix = 0;
+            }
+            if (this.replacement.ix === this.replacement.start) {
+                notifications.show("Reached end of replacements.");
+                this.replacement = null;
+                this.refreshSearchResults();
+                this.replacing = false;
+                return;
+            }
+            let next = this.replacement.places[this.replacement.ix];
+
+            this.editor.dispatch({
+                effects: [ClearActiveHighlightEffect.of(HighlightDecoration.range(0, 1)),
+                    HighlightEffect.of( [HighlightActiveDecoration.range(next.from, next.to)])]
+            });
+        this.replacing = false;
     }
     onReplaceAllConfirmed(search, replace, regex, ignoreCase) {
         this.searchCursor = this.getSearchCursor(search, regex, ignoreCase);
@@ -644,10 +675,13 @@ export class Editor extends Component {
     }
     refreshSearchResults() {
         let cPos = this.getCursorPosition();
+        this.replacement = null;
         if (this.currentSearch) {
             this.onSearchInputChanged(this.currentSearch.search, this.currentSearch.regex, this.currentSearch.ignoreCase);
         }
-        this.setCursorToPosition(cPos.pos);
+        if (cPos.pos > 0) {
+            this.setCursorToPosition(cPos.pos);
+        }
     }
     toggleReplace() {
         this.setState({ showSearch: !this.state.showSearch, searchInitMode: 'replace' });
@@ -661,6 +695,7 @@ export class Editor extends Component {
     }
     closeSearch() {
         this.setState({ showSearch: false, matchActive: -1 });
+        this.replacement = null;
         this.clearSecondaryHighlights();
         this.clearActiveHighlights();
         this.forceUpdate();
