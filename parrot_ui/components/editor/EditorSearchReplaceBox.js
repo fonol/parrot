@@ -11,7 +11,8 @@ export class EditorSearchReplaceBox extends Component {
             search: '',
             replace: '',
             matches: 0,
-            matchActive: 0
+            matchActive: 0,
+            regexInvalid: false
       };
       this.findInp = createRef();
         if (typeof (this.props.onSearch) !== 'function') {
@@ -56,18 +57,32 @@ export class EditorSearchReplaceBox extends Component {
     toggleRegex() {
         let self = this;
         this.setState({ regex: !this.state.regex }, () => {
+            if (self.state.regex && !self.regexValid(self.state.search)) {
+                self.setState({ regexInvalid: true });
+                return;
+            } else {
+                self.setState({ regexInvalid: false });
+            }
             self.props.onSearchInputChanged(self.state.search, self.state.regex, self.state.ignoreCase);
         });
     }
     toggleIgnoreCase() {
         let self = this;
         this.setState({ ignoreCase: !this.state.ignoreCase }, () => {
+            if (self.state.regex && !self.regexValid(self.state.search)) {
+                self.setState({ regexInvalid: true });
+                return;
+            }
             self.props.onSearchInputChanged(self.state.search, self.state.regex, self.state.ignoreCase);
         });
     }
     onFindKeyDown(e) {
         if (e.key === 'Enter') {
             if (this.state.search.length > 0) {
+                if (this.state.regex && !this.regexValid(this.state.search)) {
+                    this.setState({ regexInvalid: true });
+                    return;
+                }
                 this.props.onSearch(this.state.search, this.state.regex, this.state.ignoreCase);
             }
         } else if (e.key == 'Escape') {
@@ -76,6 +91,12 @@ export class EditorSearchReplaceBox extends Component {
     }
     onSearchInput(e) {
         this.setState({ search: e.target.value });
+        if (this.state.regex && !this.regexValid(e.target.value)) {
+            this.setState({ regexInvalid: true });
+            return;
+        } else {
+            this.setState({ regexInvalid: false });
+        }
         this.props.onSearchInputChanged(e.target.value, this.state.regex, this.state.ignoreCase);
     } 
     onReplaceKeyDown(e) {
@@ -86,14 +107,26 @@ export class EditorSearchReplaceBox extends Component {
         }
     }
     onReplaceClicked() {
-        if (this.state.search.length > 0) {
+        if (this.state.search.length > 0 && this.canEmit()) {
             this.props.onReplace(this.state.search, this.state.replace, this.state.regex, this.state.ignoreCase);
         }
     }
     onReplaceAllClicked() {
-        if (this.state.search.length > 0) {
+        if (this.state.search.length > 0 && this.canEmit()) {
             this.props.onReplaceAll(this.state.search, this.state.replace, this.state.regex, this.state.ignoreCase);
         }
+    }
+    canEmit() {
+        return !this.state.regex || this.regexValid(this.state.search);
+    }
+    regexValid(re) {
+        let isValid = true;
+        try {
+            new RegExp(re, "gmu");
+        } catch(e) {
+            isValid = false;
+        }
+        return isValid;
     }
 
     render() {
@@ -138,6 +171,9 @@ export class EditorSearchReplaceBox extends Component {
                             `}
                         </div>
                     </div>
+                    ${this.state.regex && this.state.regexInvalid && html`
+                        <div class="text-danger ml-5 mt-5">Invalid regex</div>
+                    `}
                     ${this.state.mode === 'replace' && html`
                         <div class="flex-row mt-5">
                             <input

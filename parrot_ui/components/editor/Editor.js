@@ -623,7 +623,7 @@ export class Editor extends Component {
 
     }
     onReplaceConfirmed(search, replace, regex, ignoreCase) {
-        if (!this.searchCursor || !this.searchCursor.value) {
+        if (!this.searchCursor || !this.searchCursor.value || this.searchCursor.value.from < 0 || this.searchCursor.value.from === this.searchCursor.value.to) {
             notifications.warn('No matches found.');
             return;
         }
