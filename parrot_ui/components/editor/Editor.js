@@ -435,8 +435,8 @@ export class Editor extends Component {
     }
     onSymbolHover(e) {
         let node = document.elementFromPoint(e.clientX, e.clientY) 
-        if (node && node.className && nade.className.startsWith('ͼ')) {
-            let nadeText = nade.innerText;
+        if (node && node.className !== null && typeof(node.className) === 'string' && node.className.startsWith('ͼ')) {
+            let nodeText = node.innerText;
             // tado: * * around global vars is not included here
 
             if (!nodeText.includes(' ') && nodeText !== this._symbolHover) {
@@ -510,6 +510,9 @@ export class Editor extends Component {
     /* This is called anytime the editor's content changed */
     onCodemirrorUpdate() {
 
+        if (this.state.showSearch) {
+            this.refreshSearchResults();
+        }
         if (this.timer) {
             clearTimeout(this.timer);
         }
@@ -535,7 +538,16 @@ export class Editor extends Component {
             let matches = this.searchMatches(cursor);
             this.searchCursor = this.getSearchCursor(search, regex, ignoreCase);
             this.currentSearch = { search, regex, ignoreCase };
-            this.setState({ noOfSearchMatches: matches.length, matchActive: 0 });
+            let matchActive;
+            if (this.state.matchActive > 0 && this.state.matchActive < matches.length) {
+                matchActive = this.state.matchActive - 1;
+            } else {
+                matchActive = 0;
+            }
+            for (let i = 0; i < matchActive; i++) {
+                this.moveSearchCursor();
+            }
+            this.setState({ noOfSearchMatches: matches.length, matchActive: matchActive });
             if (matches.length) {
                 let effects = [];
                 effects.push(ClearHighlightEffect.of([HighlightDecoration.range(0, 1)]));
@@ -611,7 +623,31 @@ export class Editor extends Component {
 
     }
     onReplaceConfirmed(search, replace, regex, ignoreCase) {
-        // todo
+        if (!this.searchCursor || !this.searchCursor.value) {
+            notifications.warn('No matches found.');
+            return;
+        }
+        let repls = [{ from: this.searchCursor.value.from, to: this.searchCursor.value.to, insert: replace || '' }];
+        this.editor.dispatch({ changes: repls });
+        this.refreshSearchResults();
+    }
+    onReplaceAllConfirmed(search, replace, regex, ignoreCase) {
+        this.searchCursor = this.getSearchCursor(search, regex, ignoreCase);
+        let allMatches = this.searchMatches(this.searchCursor);
+        if (allMatches.length === 0) {
+            notifications.warn('No matches found.');
+            return;
+        }
+        let repls = allMatches.map(m => { return { from: m.from, to: m.to, insert: replace || '' } });
+        this.editor.dispatch({ changes: repls });
+        this.onSearchInputChanged(search, regex, ignoreCase);
+    }
+    refreshSearchResults() {
+        let cPos = this.getCursorPosition();
+        if (this.currentSearch) {
+            this.onSearchInputChanged(this.currentSearch.search, this.currentSearch.regex, this.currentSearch.ignoreCase);
+        }
+        this.setCursorToPosition(cPos.pos);
     }
     toggleReplace() {
         this.setState({ showSearch: !this.state.showSearch, searchInitMode: 'replace' });
@@ -624,7 +660,7 @@ export class Editor extends Component {
         return true;
     }
     closeSearch() {
-        this.setState({ showSearch: false });
+        this.setState({ showSearch: false, matchActive: -1 });
         this.clearSecondaryHighlights();
         this.clearActiveHighlights();
         this.forceUpdate();
@@ -663,6 +699,7 @@ export class Editor extends Component {
                             onSearchInputChanged=${this.onSearchInputChanged.bind(this)}
                             onSearch=${this.onSearchConfirmed.bind(this)}
                             onReplace=${this.onReplaceConfirmed.bind(this)}
+                            onReplaceAll=${this.onReplaceAllConfirmed.bind(this)}
                             onClose=${this.closeSearch.bind(this)}
                             matches=${this.state.noOfSearchMatches}
                             matchActive=${this.state.matchActive}
