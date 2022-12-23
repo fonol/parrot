@@ -517,9 +517,10 @@ export class Editor extends Component {
             clearTimeout(this.timer);
         }
         this.timer = setTimeout(() => {
-            if (this.getValue() !== this.originalValue) {
+            if (this.getValue().length !== this.originalValue.length
+                || this.getValue() !== this.originalValue) {
                 if (this.editingExistingFile) {
-                    console.log('Editor: Saving...');
+                    console.log('[Editor] Saving...');
                     this.save();
                 }
                 if (this.props.onChange) {
@@ -660,6 +661,7 @@ export class Editor extends Component {
                 effects: [ClearActiveHighlightEffect.of(HighlightDecoration.range(0, 1)),
                     HighlightEffect.of( [HighlightActiveDecoration.range(next.from, next.to)])]
             });
+            this.centerLine(this.next.from);
         this.replacing = false;
     }
     onReplaceAllConfirmed(search, replace, regex, ignoreCase) {
