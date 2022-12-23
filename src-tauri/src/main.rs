@@ -250,10 +250,15 @@ fn get_file_content(path: &str) -> BackendResult<String> {
 }
 #[tauri::command]
 fn save_file_content(path: &str, content: &str) -> BackendResult<()> {
-    parrot_rs::file::save_file_content(path, content)?;
-    INDEX.lock()
-        .unwrap()
-        .handle_file_content_write(path);
+    match parrot_rs::file::save_file_content(path, content) {
+        Err(e) => println!("{:?}", e),
+        Ok(_) => {
+            INDEX.lock()
+                .unwrap()
+                .handle_file_content_write(path);
+        }
+
+    }
     Ok(())
 
 }
