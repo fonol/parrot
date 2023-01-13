@@ -229,6 +229,8 @@ impl REPL {
                                         sender_tcp.send(SlynkAnswer::ResolvePending { continuation: *cont, data: serde_json::to_string(&parse_apropos(value.clone()).unwrap()).unwrap() }).expect("Could not send"),
                                     ContinuationCallback::DisplayFrameLocals(cont) => 
                                         sender_tcp.send(SlynkAnswer::ResolvePending { continuation: *cont, data: serde_json::to_string(&parse_frame_locals(value).unwrap()).unwrap() }).expect("Could not send"),
+                                    ContinuationCallback::DisplayCompletions(cont) => 
+                                        sender_tcp.send(SlynkAnswer::ResolvePending { continuation: *cont, data: serde_json::to_string(&parse_flex_completions(value).unwrap()).unwrap() }).expect("Could not send"),
                                      _ => ()
                                 }
                                 handled = true;
@@ -335,6 +337,10 @@ impl REPL {
                             // todo: handle ' or #' in front of symbol
                             emacs_rex(&format!("(slynk:eval-and-grab-output \"(describe {})\")", quote(symbol)), &package_handle.lock().unwrap(), &continuation)
                         },
+                        SlynkMessage::FlexCompletions { text, cont } => {
+                            pending_handle_in.lock().unwrap().insert(continuation, ContinuationCallback::DisplayCompletions(*cont));
+                            emacs_rex(&format!("(slynk-completion:flex-completions \"{}\" 'nil)", trim_quotes(text.to_string())), &package_handle.lock().unwrap(), &continuation)
+                        }
                         SlynkMessage::AproposForSymbolInfo{ symbol, cont } => {
                             pending_handle_in.lock().unwrap().insert(continuation, ContinuationCallback::DisplayApropos(*cont));
                             // todo: handle ' or #' in front of symbol
@@ -494,6 +500,10 @@ impl REPL {
     }
     pub fn apropos_symbol(&self, symbol: String, continuation: usize) -> BackendResult<()> {
         self.slynk_repl_sender.send(SlynkMessage::AproposForSymbolInfo { symbol, cont: continuation  })?;
+        Ok(())
+    }
+    pub fn get_completions(&self, text: String, continuation: usize) -> BackendResult<()> {
+        self.slynk_repl_sender.send(SlynkMessage::FlexCompletions { text, cont: continuation  })?;
         Ok(())
     }
 

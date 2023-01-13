@@ -100,6 +100,12 @@ window.backend = new function() {
         invoke('frame_locals', { ix: ix, thread: thread, continuation: continuation });
         return createPendingPromise(continuation);
     };
+    this.getFlexCompletions = (text) => {
+        let continuation = cont();
+        invoke('flex_completions', { text: text, continuation: continuation });
+        return createPendingPromise(continuation);
+
+    }
 
     //
     // state

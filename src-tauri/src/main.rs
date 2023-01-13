@@ -101,6 +101,7 @@ fn main() {
             describe_symbol,
             apropos_symbol,
             frame_locals,
+            flex_completions,
 
             get_all_packages,
             get_symbols_in_package,
@@ -359,6 +360,12 @@ fn frame_locals(ix: usize, thread: usize, continuation: usize) -> BackendResult<
     REPL.lock()
         .unwrap()
         .frame_locals(ix, thread, continuation)
+}
+#[tauri::command]
+fn flex_completions(text: String, continuation: usize) -> BackendResult<()> {
+    REPL.lock()
+        .unwrap()
+        .get_completions(text, continuation)
 }
 
 //

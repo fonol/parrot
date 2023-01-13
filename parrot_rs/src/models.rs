@@ -215,6 +215,10 @@ pub enum SlynkMessage {
     AproposForSymbolInfo {
         symbol: String,
         cont: usize
+    },
+    FlexCompletions {
+        text: String,
+        cont: usize
     }
 }
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -234,7 +238,8 @@ pub enum ContinuationCallback {
     DisplaySymbolsInPackage(usize),
     DisplayDescribe(usize),
     DisplayApropos(usize),
-    DisplayFrameLocals(usize)
+    DisplayFrameLocals(usize),
+    DisplayCompletions(usize)
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -248,4 +253,11 @@ pub struct FrameLocal {
     pub name: String,
     pub id: usize,
     pub value: String
+
+}
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct FlexCompletion {
+    pub symbol: String,
+    pub prob: f64,
+    pub symbol_type: String
 }

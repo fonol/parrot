@@ -68,6 +68,16 @@ pub fn sexp_list_nth_as_usize(sexp: &Sexp, n: usize) -> BackendResult<usize> {
         Err(BackendError("Failed to parse sexp.".to_string()))
     }
 }
+pub fn sexp_list_nth_as_f64(sexp: &Sexp, n: usize) -> BackendResult<f64> {
+    if let Sexp::List(children) = sexp {
+        match &children[n] {
+            Sexp::Atom(Atom::F(value)) => Ok(*value),
+            _ => Err(BackendError("Failed to parse sexp.".to_string()))
+        }
+    } else {
+        Err(BackendError("Failed to parse sexp.".to_string()))
+    }
+}
 pub fn sexp_list_nth_as_bool(sexp: &Sexp, n: usize) -> BackendResult<bool> {
     if let Sexp::List(children) = sexp {
         match &children[n] {
@@ -213,6 +223,18 @@ pub fn parse_frame_locals(return_value: &str) -> BackendResult<Vec<FrameLocal>> 
         lst.push(FrameLocal { name, id, value });
     }
     Ok(lst)
+}
+pub fn parse_flex_completions(return_value: &str) -> BackendResult<Vec<FlexCompletion>> {
+    let sexp = clean_and_parse_sexp(return_value)?;
+    let suggestions = sexp_list_nth_as_list(&sexp, 0)?;
+    let mut lst = vec![];
+    for s in suggestions {
+        let symbol = sexp_list_nth_as_string(&s, 0)?;
+        let prob = sexp_list_nth_as_f64(&s, 1)?;
+        let symbol_type = sexp_list_nth_as_string(&s, 3)?;
+        lst.push(FlexCompletion { symbol: symbol, prob: prob, symbol_type: symbol_type });
+    }
+    return Ok(lst);
 }
 
 
