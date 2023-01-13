@@ -28,7 +28,7 @@ html, body {
   overflow: hidden;
   background: var(--editor-background-color);
   color: var(--text-primary-color);
-  font-family: Rubik, Verdana, monospace !important;
+  font-family: var(--ui-font) !important;
 }
 
 :focus {
@@ -788,6 +788,7 @@ body.resizing  {
 .debug-overlay__frame > div:nth-child(2) {
   flex: 1;
   user-select: none;
+  font-family: var(--editor-font);
 }
 .debug-overlay__bottom-bar {
   position: absolute;
