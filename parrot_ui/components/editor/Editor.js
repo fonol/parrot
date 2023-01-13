@@ -661,7 +661,7 @@ export class Editor extends Component {
                 effects: [ClearActiveHighlightEffect.of(HighlightDecoration.range(0, 1)),
                     HighlightEffect.of( [HighlightActiveDecoration.range(next.from, next.to)])]
             });
-            this.centerLine(this.next.from);
+            this.centerLine(next.from);
         this.replacing = false;
     }
     onReplaceAllConfirmed(search, replace, regex, ignoreCase) {
