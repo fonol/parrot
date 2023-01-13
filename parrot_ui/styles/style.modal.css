@@ -29,6 +29,7 @@
     user-select: none;
     font-size: 17px;
     font-weight: bold;
+    color: var(--text-secondary-color);
   }
   .modal-header .modal-header-input {
     padding: 0;
