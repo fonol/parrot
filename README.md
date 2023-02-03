@@ -50,10 +50,11 @@ Plus, it is untested on Linux and Mac (I will move to Linux for development at s
 - [x] basic coloring
 - [x] make backspace & del work
 - [x] evaluate lisp expressions
-- [ ] command history with arrow buttons
+- [x] command history with arrow buttons
 - [x] restart & empty  
 - [ ] properly implement resizing
 - [ ] define a proper color scheme
+- [ ] simple syntax highlighting in input field
 
 ##### REPL
 
@@ -76,7 +77,7 @@ Plus, it is untested on Linux and Mac (I will move to Linux for development at s
 - [x] add folder
 - [x] add file
 - [ ] search
-- [ ] move files/folder by drag&drop
+- [x] move files/folder by drag&drop
 - [ ] context menu: move file
 - [x] context menu: rename file
 
@@ -94,6 +95,7 @@ Plus, it is untested on Linux and Mac (I will move to Linux for development at s
 - [x] basic vim mode
 - [x] basic syntax highlighting
 	- [ ] better syntax highlighting
+	- [x] user-definable custom keywords 
 - [x] make shortcuts from settings work
 - [ ] autocomplete / suggestions
 - [x] jump to definition
@@ -103,13 +105,21 @@ Plus, it is untested on Linux and Mac (I will move to Linux for development at s
 - [ ] structured editing a la paredit
 	- [x] slurp forward / backward
 		- [ ] better handling of indentation
+		- [ ] problems with large forms
 	- [ ] barf forward / backward
+		- [ ] better handling of indentation
+- [ ] autoformatting
+	- using Slynk? using parinfer?
 - [ ] shortcut to jump between repl and source file
-- [ ] search and replace in file
-- [ ] search in file
-- [ ] optional rainbow parentheses?
-- [ ] look up function definition
+- [x] search and replace in file
+- [ ] rainbow parentheses
+- [x] look up function definition
 - [ ] disassemble functions
+- [ ] syntax highlighting for some other common file types:
+	- [ ] HTML
+	- [ ] JavaScript
+	- [ ] Markdown
+
 
 #### Lisp code evaluation / compilation
 
@@ -123,20 +133,20 @@ Plus, it is untested on Linux and Mac (I will move to Linux for development at s
 #### Settings
 
 - [x] Settings dialog
-- [ ] setting: Slynk socket
-- [x] setting: Path to SBCL
-- [ ] settting: .fasl file directory
-- [x] setting: toggle line numbers
-- [x] setting: enable/disable vim mode
-- [x] setting: vim mode: set shortcut to toggle normal mode/insert mode
-- [x] setting: shortcut - compile and load file
-- [x] setting: shortcut - compile top-level expression
-- [x] setting: shortuct - evaluate expression before cursor
-- [ ] setting: file types to show in the file tree
-- [ ] setting: editor font size
-- [ ] setting: editor font family
-- [ ] alternative themes
-	- [ ] would require some theming mechanism, e.g. more consistently using css vars everywhere
+	- [ ] setting: Slynk socket
+	- [x] setting: Path to SBCL
+	- [ ] settting: .fasl file directory
+	- [x] setting: toggle line numbers
+	- [x] setting: enable/disable vim mode
+	- [x] setting: vim mode: set shortcut to toggle normal mode/insert mode
+	- [x] setting: shortcut - compile and load file
+	- [x] setting: shortcut - compile top-level expression
+	- [x] setting: shortuct - evaluate expression before cursor
+	- [ ] setting: file types to show in the file tree
+	- [ ] setting: editor font size
+	- [ ] setting: editor font family
+	- [ ] alternative themes
+		- [ ] would require some theming mechanism, e.g. more consistently using css vars everywhere
 
 #### Missing UI elements
 
@@ -161,6 +171,7 @@ Plus, it is untested on Linux and Mac (I will move to Linux for development at s
 - [x] troubleshooting dialog, if SBCL/Slynk not found at startup
 - [ ] loading quicklisp libraries
 - [ ] browsing the hyperspec
+	- [x] produce usable hyperspec HTML files
 - [ ] save lisp image
 - [ ] loading asdf systems
 - [ ] global search shortcut to find files
