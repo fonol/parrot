@@ -203,10 +203,16 @@ export class Editor extends Component {
         map["Ctrl-f"] = this.toggleSearch.bind(this);
         map["Ctrl-h"] = this.toggleReplace.bind(this);
 
+        let customHighlightingRules = window.config.get('custom_highlights');
 
         if (!this.editor) {
             this.editorTarget.current.innerHTML = '';
-            this.editor = window.initEditor(this.editorTarget.current, editorConf, map, this.onCodemirrorUpdate.bind(this));
+            this.editor = window.initEditor(this.editorTarget.current,
+                editorConf,
+                map,
+                this.onCodemirrorUpdate.bind(this),
+                customHighlightingRules
+            );
         }
 
         // fill value
@@ -405,6 +411,23 @@ export class Editor extends Component {
     setSymbolInfoTab(tab) {
         if (tab !== this.state.symbolInfoTab) {
             this.setState({ symbolInfoTab: tab });
+            if (tab === 'apropos') {
+                if (!this.state.symbolInfo.text || this.state.symbolInfo.text.trim().length <= 1) {
+                    this.setState(s => {
+                        s.symbolInfo.apropos = '\nText too short.';
+                        return s;
+                    })
+                } else {
+                    let self = this;
+                    backend.getApropos(this.state.symbolInfo.text)
+                        .then(r => {
+                            self.setState(s => {
+                                s.symbolInfo = { apropos: JSON.parse(r) };
+                                return s;
+                            });
+                        });
+                }
+            }
             this.forceUpdate();
         }
     }
@@ -471,12 +494,13 @@ export class Editor extends Component {
                 let self = this;
                 this._symbolHover = nodeText;
                 this._nodeHoverDebounce = setTimeout(() => {
-                    backend.getSymbolInfo(nodeText)
-                        .then(([describeResult, aproposResult]) => {
+                    backend.getDescribe(nodeText)
+                        .then(describeResult => {
                             self.removeHoverLoadingMeter();
                             self.symbolInfoShown = true;
                             self.setState(s => {
-                                s.symbolInfo = { describe: JSON.parse(describeResult), apropos: JSON.parse(aproposResult) };
+                                s.symbolInfoTab = 'describe';
+                                s.symbolInfo = {  describe: JSON.parse(describeResult), text: nodeText };
                                 return s;
                             });
                             self.forceUpdate();

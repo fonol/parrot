@@ -26705,7 +26705,7 @@
    window.RegExpCursor = RegExpCursor;
 
 
-   window.initEditor = (el, config, keyMap, updateCb) => {
+   window.initEditor = (el, config, keyMap, updateCb, customHighlights) => {
      let {
        showLineNumbers,
        vimMode,
@@ -26742,6 +26742,8 @@
          updateCb();
        }
      });
+
+     
      
     
      let extensions = [
@@ -26765,11 +26767,55 @@
        keymap.of(keymaps),
        keymap.of([indentWithTab]),
      ];
+     
      if (showLineNumbers) {
        extensions.push(lineNumbers());
      }
      if (vimMode) {
        extensions.push(vim());
+     }
+     //
+     // Custom highlighting
+     //
+     if (customHighlights && customHighlights.length) {
+       for (let ch of customHighlights) {
+         // test regexp
+         let isValid = true;
+         try {
+             new RegExp(ch.pattern, 'g');
+         } catch(e) {
+             isValid = false;
+         }
+         if (!isValid) {
+           continue;
+         }
+         let matchDecorator = new MatchDecorator({
+           regexp: new RegExp(ch.pattern, 'g'),
+           decoration: match => Decoration.mark(
+             {
+               attributes: {
+                 'style': `color:${ch.color}`
+               },
+               class: 'cmc'
+             }
+           )
+         });
+         let viewPlugin = ViewPlugin.fromClass(class {
+           constructor(view) {
+             this.decos = matchDecorator.createDeco(view);
+           }
+           update(update) {
+             this.decos = matchDecorator.updateDeco(update, this.decos);
+           }
+         }, {
+           decorations: instance => instance.decos,
+           provide: plugin => EditorView.atomicRanges.of(view => {
+             return view.plugin(plugin)?.decos || Decoration.none
+           })
+         });
+         extensions.push(viewPlugin);
+       }
+
      }
 
      //

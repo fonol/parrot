@@ -7,6 +7,11 @@ pub struct IdNamePair {
     pub name: String,
 }
 
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct CustomHighlight {
+    pub pattern: String,
+    pub color: String
+}
 
 #[derive(Debug, Clone, Deserialize, Serialize)]
 pub struct FileTreeNode {

@@ -118,11 +118,15 @@ input[type="checkbox"] {
 input[type="checkbox"]:checked {
   background-color: var(--active-primary-color);
 }
+input[type="color"] {
+  padding: 1px 2px;
+  height: auto;
+}
 input.invalid {
   border-color: var(--text-danger-color) !important;
 }
 hr {
-  border-color: #b99272;
+  border-color: var(--pane-border-color);
 }
 pre {
   margin: 0;

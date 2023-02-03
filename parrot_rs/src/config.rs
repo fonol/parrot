@@ -2,7 +2,7 @@ use directories::{BaseDirs, ProjectDirs, UserDirs};
 use serde::{Deserialize, Serialize};
 use std::{fs, path::Path};
 
-use crate::BackendError;
+use crate::{BackendError, models::CustomHighlight};
 
 #[derive(Serialize, Deserialize)]
 pub struct Config {
@@ -19,7 +19,8 @@ pub struct Config {
     pub shortcut_find_definition: Option<String>,
     pub shortcut_slurp_forward: Option<String>,
     pub shortcut_slurp_backward: Option<String>,
-    pub show_line_numbers: bool
+    pub show_line_numbers: bool,
+    pub custom_highlights: Vec<CustomHighlight>
 }
 
 fn config_path() -> Result<String, BackendError> {
@@ -68,7 +69,8 @@ pub fn create_config_if_not_existing() {
             shortcut_find_definition: Some(String::from("Shift-Ctrl-d")),
             shortcut_slurp_forward: Some(String::from("Ctrl-ArrowRight")),
             shortcut_slurp_backward: Some(String::from("Ctrl-ArrowLeft")),
-            show_line_numbers: false
+            show_line_numbers: false,
+            custom_highlights: vec![]
         };
 
         write_config(&config).unwrap();

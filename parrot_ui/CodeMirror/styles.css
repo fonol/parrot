@@ -45,11 +45,12 @@
 .cm-lineNumbers {
   color: #584332 !important;
 }
-
+.cmc > span {
+  color: inherit !important;
+}
 /* Symbol info on hover */
 .cm-info-shown {
   background-color: #342f2b;
-
 }
 #cm-info-loading-meter {
   position: absolute;
