@@ -115,7 +115,7 @@ export class FileFolderTree extends Component {
 
                 </div>
                 <div class="overflow-auto flex-1">
-                    <ul class="mt-0">
+                    <ul class="mt-0 file-folder-tree" id="file-folder-tree">
                         ${this.props.tree.children.map(n => html`
                         <${TreeNode} 
                             onLeftClicked=${this.props.onLeftClicked ? this.props.onLeftClicked: null} 

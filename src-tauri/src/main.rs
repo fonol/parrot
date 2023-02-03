@@ -95,6 +95,7 @@ fn main() {
             delete_dir,
             dir_is_empty,
             is_dir,
+            move_to_dir,
 
             search_source_files,
 
@@ -310,6 +311,10 @@ fn dir_is_empty(path: &str) -> BackendResult<bool> {
 #[tauri::command]
 fn is_dir(path: &str) -> BackendResult<bool> {
     Ok(Path::new(path).is_dir())
+}
+#[tauri::command]
+fn move_to_dir(src: &str, target: &str) -> BackendResult<()> {
+    parrot_rs::file::move_to_dir(src, target)
 }
 
 //

@@ -91,6 +91,22 @@ pub fn create_subdir(parent_path: &str, folder_name: &str) -> BackendResult<Stri
     }
 }
 
+pub fn move_to_dir<P: AsRef<Path>>(src: P, target: P) -> BackendResult<()> {
+    if !target.as_ref().exists() {
+        return Err(BackendError(String::from("Target path does not exist.")));
+    }
+    if !target.as_ref().is_dir() {
+        return Err(BackendError(String::from("Target is not a dir.")));
+    }
+    if !src.as_ref().exists() {
+        return Err(BackendError(String::from("Source path does not exist.")));
+    }
+
+    let src_name = src.as_ref().file_name().unwrap();
+    let new_path = target.as_ref().join(src_name);
+    std::fs::rename(src, new_path)?;
+    Ok(())
+}
 pub fn to_rel_path<P: AsRef<Path>>(root_folder: P, full_path: P) -> String {
     full_path
         .as_ref()

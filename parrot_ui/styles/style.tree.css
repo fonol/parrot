@@ -10,12 +10,11 @@ ul {
   
   .tree-list-item {
     list-style-type: none;
-    /* cursor: pointer; */
     user-select: none;
     font-size: 16px;
     padding: 3px 0px 2px 1px;
     position: relative;
-    min-height: 25px;
+    min-height: 23px;
   }
   
   .tree-icon {
@@ -24,6 +23,7 @@ ul {
     margin-top: 1px;
     font-size: 14px;
     color: var(--text-secondary-color);
+    opacity: 0.5;
   }
   
   
@@ -96,7 +96,7 @@ ul {
     z-index: 6;
   }
   
-  .tree-node:hover {
+  .file-folder-tree:not(.dragging) .tree-node:hover {
     background: #373027; 
   }
   
@@ -176,4 +176,17 @@ ul {
     color: #b99272;
     margin-bottom: 5px;
     word-break: break-all;
+  }
+
+  .tree-drag-marker {
+    position: absolute;
+    padding: 5px;
+    z-index: 50;
+    border-radius: 3px;
+    background-color: var(--pane-bg);
+    opacity: 0.7;
+    color: var(--text-primary-color);
+  }
+  .tree-node--drag-hovered {
+    background-color: #302a24 !important;
   }

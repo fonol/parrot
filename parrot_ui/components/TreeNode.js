@@ -1,4 +1,5 @@
 import { html, Component } from '../preact-bundle.js'
+import { initTreeNodeDragDrop } from '../scripts/tree.js';
 
 export class TreeNode extends Component {
     constructor(props) {
@@ -16,7 +17,6 @@ export class TreeNode extends Component {
       });
     }
     onLeftClick() {
-      console.log('onLeftClick()');
       this.props.onLeftClicked(this.props.node.path);
     }
     onShowSubdirectoryCreateDialog(path) {
@@ -24,6 +24,9 @@ export class TreeNode extends Component {
     }
     onShowFileDeleteDialog(path) {
       this.props.onShowFileDeleteDialog(path);
+    }
+    onDragStart() {
+      initTreeNodeDragDrop(this.props.node.name, this.props.node.path);
     }
     onRightClick(event) {
 
@@ -78,8 +81,8 @@ export class TreeNode extends Component {
       let isMainContext = this.props.context.toLowerCase() === 'main';
       return html`
         <li
-            class="tree-list-item"
-            style="margin-left: 0">
+            className=${'tree-list-item ml-0 ' + (node.node_type === 'Dir' ? 'tree-node--dir': '')}
+            data-path=${node.path}>
             <div class="flex-row">
                 ${node.children != null && node.children.length && html`
                     <span className=${'mr-10 exp fld' + (this.state.open ? ' open': ' closed')}
@@ -87,13 +90,13 @@ export class TreeNode extends Component {
                 `}
                 ${node.node_type === 'Lisp' && html`<span class="mr-10 fld tree-icon">λ</span>`}
                 ${node.node_type === 'Pdf' && html`<span class="mr-10 fld tree-icon">PDF</span>`}
-                ${node.node_type === 'Dir' && (!node.children || !node.children.length) && html`
-                    <span class="mr-10 exp fld empty" style="cursor: default;" ></span>`}
-                    <span 
+                ${node.node_type === 'Dir' && (!node.children || !node.children.length) && html`<span class="mr-10 exp fld empty" style="cursor: default;" ></span> `}
+                <span 
                     class='tree-node' 
                     data-path=${node.path}
                     data-type=${node.node_type.toLowerCase()}
                     data-oname=${node.name}
+                    onMousedown=${this.onDragStart.bind(this)}
                     onClick=${(e) => { if (node.node_type === 'Dir') { this.expClicked(e) } else { this.onLeftClick() } }}
                     onContextMenu=${(e) => this.onRightClick(e)}
                     >${node.name}</span>

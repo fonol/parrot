@@ -60,6 +60,7 @@ window.backend = new function() {
     this.deleteFile = (path) => invoke('delete_file', { path: path });
     this.renameFileOrFolder = (oldPath, newName) => invoke('rename_file_or_folder', { oldPath: oldPath, newName: newName });
     this.fileExists = (path) => invoke('file_exists', { path: path });
+    this.moveToDir = (src, target) => invoke('move_to_dir', { src: src, target: target });
 
     //
     // folders
