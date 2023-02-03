@@ -179,15 +179,21 @@ window.initEditor = (el, config, keyMap, updateCb, customHighlights) => {
         continue;
       }
       let matchDecorator = new MatchDecorator({
-        regexp: new RegExp(ch.pattern, 'g'),
-        decoration: match => Decoration.mark(
-          {
-            attributes: {
-              'style': `color:${ch.color}`
-            },
-            class: 'cmc'
+        regexp: new RegExp(ch.pattern, 'gd'),
+        decorate: (add, from, to, match, view) => {
+          if (match.length > 1) {
+            let [fi, ti] = match.indices[1];
+            from += fi - match.index;
+            to -= (match[0].length -1 - ti);
           }
-        )
+          add(from, to, Decoration.mark(
+            {
+              attributes: {
+                'style': `color:${ch.color}`
+              },
+              class: 'cmc'
+            }));
+        }
       });
       let viewPlugin = ViewPlugin.fromClass(class {
         constructor(view) {

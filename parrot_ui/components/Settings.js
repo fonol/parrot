@@ -99,7 +99,7 @@ export class Settings extends Component {
                         <div class="modal-header">
                             Settings
                         </div>
-                        <div class="modal-body overflow-hidden flex-row" style="flex: 1 1 600px; min-width: 1000px">
+                        <div class="modal-body overflow-hidden flex-row" style="flex: 1 1 800px; min-width: 1000px">
                             <div class="settings-cats">
                                 <div onClick=${() => this.setCat(1)} className=${this.state.cat === 1 ? 'active': ''}>General</div>
                                 <div onClick=${() => this.setCat(2)} className=${this.state.cat === 2 ? 'active': ''}>Editor</div>
@@ -195,17 +195,23 @@ export class Settings extends Component {
                                     <div class="overflow-hidden flex-1 flex-col flex-left">
                                         <div class="text-secondary pl-10">
                                             <p>
-                                                Text that matches a pattern defined here will be highlighted with the respective color.
+                                                Text that matches a pattern defined here will be highlighted with the respective color.<br/>
                                             </p>
-                                            Examples for patterns: 
+                                            <ul class="pl-20">
+                                                <li>Patterns will only be matched within a line.</li>
+                                                <li>If one or more groups are in the pattern, the <strong>first group</strong> will be colored.</li>
+                                                <li>If no groups are in the pattern, the <strong>whole match</strong> will be colored.</li>
+                                            </ul>
+                                            Examples:
                                             <div class="mb-10 mt-5 flex-row flex-center">
-                                                <input type="text" class="text-secondary" readonly value="my-cool-macro"/>
+                                                <input type="text" class="text-secondary" readonly value="\\((my-cool-macro) "/>
                                                 <span class="ml-15 mr-15">or</span>
-                                                <input type="text" class="text-secondary" readonly value="#'[^\\s]+"/>
+                                                <input type="text" class="text-secondary" readonly value="#'[^\\s()]+"/>
                                             </div>
                                         </div>
-                                        <div class="mt-20 pl-10">
-                                            <button class="mb-10" onClick=${this.addCustomHighlight.bind(this)}>Add custom highlighting rule</button>
+                                        <hr class="w-100"/>
+                                        <div class="mt-10 pl-10">
+                                            <button class="mb-10" onClick=${this.addCustomHighlight.bind(this)}>Add rule</button>
                                         </div>
                                         <div class="overflow-auto flex-1">
                                             ${this.state.customHighlights.map((ch,ix) => html`
