@@ -828,6 +828,22 @@ body.resizing  {
   cursor: pointer;
   padding: 5px;
 }
+.search-result-group summary > div {
+  display: inline-flex;
+  align-items: center;
+  overflow: hidden;
+  max-width: calc(100% - 20px);
+  white-space: nowrap;
+}
+.search-result-group summary > div > div {
+  flex: 1;
+}
+.search-result-group summary small {
+  margin-left: 10px;
+  color: var(--text-secondary-color);
+  text-overflow: ellipsis;
+  overflow: hidden;
+}
 .search-result-group summary:hover::marker {
   color: var(--active-primary-color);
 }

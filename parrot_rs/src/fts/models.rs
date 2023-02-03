@@ -81,7 +81,7 @@ pub enum FileType {
 pub struct FileContentSearchResultGroup {
     pub path_to_file: String,
     pub file_name: String,
-    pub folder_name: String,
+    pub rel_path_folder: String,
     pub matches: Vec<FileContentLineResult>
 
 }

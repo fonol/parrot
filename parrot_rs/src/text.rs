@@ -115,6 +115,21 @@ pub fn u64_hash(text: &str) -> u64 {
     text.hash(&mut s);
     s.finish()
 }
+pub fn trim_quote_op(mut text: String) -> String {
+    if text.starts_with("#'") {
+        text = text
+            .chars()
+            .skip(2)
+            .collect();
+    }
+    else if text.starts_with("'") {
+        text = text
+            .chars()
+            .skip(2)
+            .collect();
+    }
+    text
+}
 
 pub fn trim_quotes(mut text: String) -> String {
     if text.starts_with("\"") {
@@ -156,6 +171,23 @@ pub fn quote(text: &str) -> Cow<str> {
     } else {
         Cow::Owned(format!("'{}", text))
     }
+}
+pub fn add_leading_and_trailing_slash(mut text: String) -> String {
+    if !text.starts_with("\\") && !text.starts_with("/") {
+        if text.contains("\\") {
+            text.insert(0, '\\');
+        } else {
+            text.insert(0, '/');
+        }
+    }
+    if !text.ends_with("\\") && !text.ends_with("/") {
+        if text.contains("\\") {
+            text.push('\\');
+        } else {
+            text.push('/');
+        }
+    }
+    text
 }
 
 //

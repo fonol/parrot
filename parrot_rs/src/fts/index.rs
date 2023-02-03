@@ -247,14 +247,7 @@ impl Index {
 
                             res.push(FileContentSearchResultGroup {
                                 file_name: path_to_node_name(&Path::new(&doc.path)).to_string(),
-                                folder_name: Path::new(&doc.path)
-                                    .parent()
-                                    .unwrap()
-                                    .file_name()
-                                    .unwrap()
-                                    .to_str()
-                                    .unwrap()
-                                    .to_string(),
+                                rel_path_folder: add_leading_and_trailing_slash(Path::new(&doc.path).parent().unwrap().to_str().unwrap().to_string()),
                                 path_to_file: Path::new(&self.root_folder.as_ref().unwrap()).join(&doc.path).to_str().unwrap().to_string(),
                                 matches: found
                             });
@@ -305,14 +298,7 @@ impl Index {
 
                     res.push(FileContentSearchResultGroup {
                         file_name: path_to_node_name(&Path::new(&doc.path)).to_string(),
-                        folder_name: Path::new(&doc.path)
-                            .parent()
-                            .unwrap()
-                            .file_name()
-                            .unwrap()
-                            .to_str()
-                            .unwrap()
-                            .to_string(),
+                        rel_path_folder: add_leading_and_trailing_slash(Path::new(&doc.path).parent().unwrap().to_str().unwrap().to_string()),
                         path_to_file: Path::new(&self.root_folder.as_ref().unwrap()).join(&doc.path).to_str().unwrap().to_string(),
                         matches: found
                     });

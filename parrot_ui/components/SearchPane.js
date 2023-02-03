@@ -109,7 +109,10 @@ export class SearchPane extends Component {
                         ${this.state.results.map(r => html`
                             <details class="search-result-group" open>
                                 <summary>
-                                    ${r.file_name}
+                                    <div>
+                                        <div>${r.file_name}</div>
+                                        <small>${r.rel_path_folder}</small>
+                                    </div>
                                 </summary>
                                 <div>
                                     ${r.matches.map(m => html`
