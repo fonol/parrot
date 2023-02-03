@@ -168,7 +168,6 @@ fn get_tree_as_json(arena: Arena<FileTreeNode>, root: NodeId) -> Result<String, 
 }
 
 fn walk_dir_rec(dir_path: &str, arena: &mut Arena<FileTreeNode>, parent: NodeId) {
-    // 1. add the dir as node to the arena
 
     let path = Path::new(dir_path);
     let node_name = path_to_node_name(path);
