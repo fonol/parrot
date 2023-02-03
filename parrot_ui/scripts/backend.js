@@ -22,6 +22,11 @@ window.backend = new function() {
         });
         return contPromise;
     }
+    var invokeWithCont = (endpoint, args) => {
+        let continuation = cont();
+        invoke(endpoint, { continuation: continuation, ...args });
+        return createPendingPromise(continuation);
+    }
 
 
     this.checkConfig = () => invoke('check_config');
@@ -72,20 +77,15 @@ window.backend = new function() {
     //
     // package browser
     //
-    this.getAllPackages = () => {
-        let continuation = cont();
-        invoke('get_all_packages', { continuation: continuation });
-        return createPendingPromise(continuation);
-    }
-    this.getSymbolsInPackage = (package, vars, functions, classes, macros) => {
-        let continuation = cont();
-        invoke('get_symbols_in_package', { package: package, vars: vars, functions: functions, classes: classes, macros: macros, continuation: continuation });
-        return createPendingPromise(continuation);
-    }
+    this.getAllPackages = () => invokeWithCont('get_all_packages', {});
+    this.getSymbolsInPackage = (package, vars, functions, classes, macros) => invokeWithCont('get_symbols_in_package', { package: package, vars: vars, functions: functions, classes: classes, macros: macros });
 
     //
     // others
     //
+    this.getDescribe = (symbol) => invokeWithCont('describe_symbol', { symbol: symbol });
+    this.getApropos = (symbol) => invokeWithCont('apropos_symbol', { symbol: symbol });
+
     this.getSymbolInfo = (symbol) => {
         let continuation = cont();
         invoke('describe_symbol', { symbol: symbol, continuation: continuation });
@@ -95,17 +95,8 @@ window.backend = new function() {
         let p2 = createPendingPromise(continuation);
         return Promise.all([p1, p2]);
     };
-    this.frameLocals = (ix, thread) => {
-        let continuation = cont();
-        invoke('frame_locals', { ix: ix, thread: thread, continuation: continuation });
-        return createPendingPromise(continuation);
-    };
-    this.getFlexCompletions = (text) => {
-        let continuation = cont();
-        invoke('flex_completions', { text: text, continuation: continuation });
-        return createPendingPromise(continuation);
-
-    }
+    this.frameLocals = (ix, thread) => invokeWithCont('frame_locals', { ix: ix, thread: thread });
+    this.getFlexCompletions = (text) => invokeWithCont('flex_completions', { text: text });
 
     //
     // state
