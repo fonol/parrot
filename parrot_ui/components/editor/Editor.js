@@ -419,13 +419,18 @@ export class Editor extends Component {
                     })
                 } else {
                     let self = this;
+                    this.setState(s => {
+                        s.symbolInfo.apropos = `Fetching apropos...`;
+                        return s;
+                    });
                     backend.getApropos(this.state.symbolInfo.text)
                         .then(r => {
                             self.setState(s => {
-                                s.symbolInfo = { apropos: JSON.parse(r) };
+                                s.symbolInfo.apropos = JSON.parse(r);
                                 return s;
                             });
-                        });
+                            self.forceUpdate();
+                    });
                 }
             }
             this.forceUpdate();
