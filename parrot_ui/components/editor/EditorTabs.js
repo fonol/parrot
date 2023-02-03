@@ -24,40 +24,63 @@ export class EditorTabs extends Component {
      * Public
      */
     open(filePath) {
-        this.setState(state => {
-            let pathNormalized = normalizePath(filePath);
-            if (!this.hasAlreadyOpened(pathNormalized)) {
-                state.opened.push(pathNormalized);
-            }
-            state.active = pathNormalized;
-            return state;
-        });
+        let self = this;
+        backend.fileExists(filePath)
+            .then(exists => {
+                if (!exists) {
+                    notifications.error(`File ${filePath} could not be found.`);
+                    return;
+                }
+                self.setState(state => {
+                    let pathNormalized = normalizePath(filePath);
+                    if (!self.hasAlreadyOpened(pathNormalized)) {
+                        state.opened.push(pathNormalized);
+                    }
+                    state.active = pathNormalized;
+                    return state;
+                });
+            });
     }
     openAtLineAndCol({file, line, col}) {
-        this.setState(state => {
-            let pathNormalized = normalizePath(file);
-            if (!this.hasAlreadyOpened(pathNormalized)) {
-                state.opened.push(pathNormalized);
-            }
-            state.active = pathNormalized;
-            return state;
-        }, () => { 
-            this.editor.current.setCursorToLineAndCol(line, col);
-        });
-
+        let self = this;
+        backend.fileExists(file)
+            .then(exists => {
+                if (!exists) {
+                    notifications.error(`File ${file} could not be found.`);
+                    return;
+                } 
+                self.setState(state => {
+                    let pathNormalized = normalizePath(file);
+                    if (!self.hasAlreadyOpened(pathNormalized)) {
+                        state.opened.push(pathNormalized);
+                    }
+                    state.active = pathNormalized;
+                    return state;
+                }, () => { 
+                    self.editor.current.setCursorToLineAndCol(line, col);
+                });
+            })
     }
     openAtPosition(filePath, pos) {
-        this.setState(state => {
-            let pathNormalized = normalizePath(filePath);
-            console.log('opening: ' + filePath);
-            if (!this.hasAlreadyOpened(pathNormalized)) {
-                state.opened.push(pathNormalized);
-            }
-            state.active = pathNormalized;
-            return state;
-        }, () => { 
-            this.editor.current.setCursorToPosition(pos);
-        });
+        let self = this;
+        backend.fileExists(filePath)
+            .then(exists => {
+                if (!exists) {
+                    notifications.error(`File ${filePath} could not be found.`);
+                    return;
+                }
+                self.setState(state => {
+                    let pathNormalized = normalizePath(filePath);
+                    console.log('opening: ' + filePath);
+                    if (!self.hasAlreadyOpened(pathNormalized)) {
+                        state.opened.push(pathNormalized);
+                    }
+                    state.active = pathNormalized;
+                    return state;
+                }, () => {
+                    self.editor.current.setCursorToPosition(pos);
+                });
+            });
     }
     refresh() {
         console.log('EditorTabs:refresh()');
