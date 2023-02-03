@@ -130,7 +130,7 @@ export class EditorTabs extends Component {
                     ${this.state.opened.map(f => html`
                         <div className=${'tabs__header' + (f === this.state.active ? ' active' : '')}
                             onClick=${() => this.setActive(f)}
-                        >${getLeafNameWithoutExtension(f)}
+                        ><div>${getLeafNameWithoutExtension(f)}</div>
                             <svg onClick=${(e) => { e.stopPropagation(); this.remove(f) }}
                                 height="20" width="20"
                                 viewBox="0 0 512 512"><path fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="32" d="M368 368L144 144M368 144L144 368"/></svg>
